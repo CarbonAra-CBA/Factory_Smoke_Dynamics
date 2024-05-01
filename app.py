@@ -7,7 +7,7 @@ import requests
 from datetime import datetime, timedelta
 import numpy as np
 import matplotlib.pyplot as plt
-
+import apikey
 import json
 
 # 1번 wind API -> DB 저장 함수 get_wind()
@@ -35,7 +35,7 @@ def get_wind_now(stn):
         ,"TS","TE_005","TE_01","TE_02","TE_03","ST_SEA","WH","BF","IR","IX"]
 
     domain = "https://apihub.kma.go.kr/api/typ01/url/kma_sfctm2.php?"
-    auth_key = "Em-6DOwZTEyvugzsGfxMGg" # 부여받은 API Key 입력
+    auth_key = apikey.wind_key # 부여받은 API Key 입력
     params = {
         'stn' : stn, # 지역 번호
         'help' : 0, # 도움말 없음
