@@ -12,8 +12,10 @@ from flask import Flask
 
 # server 구동 : cmd에서 python app.py
 
+#-----------------------------------------------#
+# Flask Server
 
-# Flask App Here ( Flask 객체 'app')
+# ( Flask 객체 'app')
 app = Flask(__name__)
 
 @app.route('/')
@@ -22,9 +24,6 @@ def index():
 
 if __name__ == '__main__':          # app 구동
     app.run(debug=True)
-#-----------------------------------------------#
-# Flask Server
-
 
 
 

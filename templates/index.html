@@ -1,10 +1,65 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html lang="">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+          integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+          crossorigin=""/>
+    <!-- Make sure you put this AFTER Leaflet's CSS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+            integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+            crossorigin=""></script>
+    <title>Document</title>
+    <style>
+        #map { height: 800px; }
+    </style>
 </head>
+
 <body>
+<!-- 위치 선정 -->
+<div id="map"></div>
+
+
+<!-- 공장 선택 -->
 
 </body>
+
+<script>
+    var map = L.map('map').setView([35.434807884,129.349306610], 13);           // (x, y ,zoom) // 현재 울산광역시 울주군 온산읍 산암로 148 ( GEO Coding API로 변경해서 X,Y 전송받기 가능 )
+
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {             // 표준 타일 레이어 (? : 그냥 지도 종류라고 보면된다. 지도 종류는 바꾸기 가능)
+        maxZoom: 19,
+        attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+    }).addTo(map);
+
+
+    // Function to create hexagon coordinates
+    function createHexagon(center, radius) {
+        var latlngs = [];
+        for (let i = 0; i < 6; i++) {
+            // Calculate angle for each vertex
+            let angle = 2 * Math.PI / 6 * i;
+            let lat = center[0] + radius * Math.cos(angle);
+            let lng = center[1] + radius * Math.sin(angle);
+            latlngs.push([lat, lng]);
+        }
+        return latlngs;
+    }
+
+    // Create hexagon coordinates around the central point
+    var hexagonCenter = [35.434807884,129.349306610];  // Set the central point for the hexagon
+    var hexagonRadius = 0.01;  // Set the radius (in degrees, adjust based on your scale)
+    var hexagonCoordinates = createHexagon(hexagonCenter, hexagonRadius);
+
+    // Create and add the hexagon polygon to the map
+    var hexagon = L.polygon(hexagonCoordinates, {color: 'red'}).addTo(map);
+
+    // Zoom the map to the hexagon
+    map.fitBounds(hexagon.getBounds());
+
+
+</script>
 </html>
