@@ -65,11 +65,13 @@ function hexFill(startLat, startLng, n, hexDist) {
         for (let j = 0; j < width; j++) {
             newLat = roundToPrecision(hexBuf[j][0] - 2 * cosValue * latDist, precision);
             newLng = roundToPrecision(hexBuf[j][1] - sinValue * lngDist, precision);
+
             hexList.push([newLat, newLng]);
         }
     }
 
     // 중간에서 맨 아래까지
+
     cosValue = roundToPrecision(Math.cos(5 / 6 * (Math.PI * 2)), precision);
     sinValue = roundToPrecision(Math.sin(5 / 6 * (Math.PI * 2)), precision);
     for (let i = 0; i < n - 1; i++) {
@@ -85,10 +87,5 @@ function hexFill(startLat, startLng, n, hexDist) {
     }
     return hexList;
 }
-//
-// var map = L.map('map').setView([35.1188093910081, 128.96808496718], 13);
-// L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-//     maxZoom: 19,
-//     attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-// }).addTo(map);
-//
+
+
