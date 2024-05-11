@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+          integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+          crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+            integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+            crossorigin=""></script>
+    <style>
+        #map { width: 600px; height: 450px; }
+    </style>
+</head>
+<body>
+<div id="map"></div>
+<script src="fill_hex.js"></script>
+<script>
+    let startLat = 35.1188093910081;
+    let startLng = 128.96808496718;
+    let n = 5;
+    let hexDist = 0.5;
+    // 시작 위도와 경도값은 원하는 범위의 가장 왼쪽, 위쪽에 위치한 값이어야 합니다.
+    // startLat = 시작 위도, startLng = 시작 경도, n = 맨 윗줄에 나열할 헥사곤 개수
+    // hexDist는 km단위 값입니다.
+    let hexGrid = hexFill(startLat, startLng, n, hexDist);
+    let count = 0;
+    let c = 'red';
+    hexGrid.forEach(point => {
+        count+=1;
+        if (count > n) c = 'blue';
+        L.circleMarker(point, {
+            color: c,
+            fillColor: '#f03',
+            fillOpacity: 0.5,
+            radius: 3
+        }).addTo(map);
+    });
+</script>
+</body>
+</html>
