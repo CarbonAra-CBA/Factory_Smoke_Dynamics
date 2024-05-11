@@ -15,19 +15,22 @@
         <div id="map"></div>
         <script src="fill_hex.js"></script>
         <script>
+            var map = L.map('map').setView([35.1188093910081, 128.96808496718], 13);
+            L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+                attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+            }).addTo(map);
+
             let startLat = 35.1188093910081;
             let startLng = 128.96808496718;
-            let n = 5;
+            let areaDist = 10;
             let hexDist = 0.5;
-            // 시작 위도와 경도값은 원하는 범위의 가장 왼쪽, 위쪽에 위치한 값이어야 합니다.
-            // startLat = 시작 위도, startLng = 시작 경도, n = 맨 윗줄에 나열할 헥사곤 개수
-            // hexDist는 km단위 값입니다.
-            let hexGrid = hexFill(startLat, startLng, n, hexDist);
-            let count = 0;
+            // factLat = 공장 굴뚝 위도, factLng = 공장 굴뚝 경도
+            // areaDist = 시각화하고 싶은 전체 범위의 반지름(km)
+            // hexDist = 전체 범위 내 하나의 요소의 반지름(km)
+            let hexGrid = hexFill(factLat, factLng, areaDist, hexDist);
             let c = 'red';
             hexGrid.forEach(point => {
-                count+=1;
-                if (count > n) c = 'blue';
                 L.circleMarker(point, {
                     color: c,
                     fillColor: '#f03',
