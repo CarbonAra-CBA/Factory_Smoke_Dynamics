@@ -12,6 +12,10 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
             integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
             crossorigin=""></script>
+    <script src="https://unpkg.com/leaflet-geometryutil"></script>
+    <script src="https://unpkg.com/leaflet-ellipse"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-polylinedecorator/1.1.0/leaflet.polylineDecorator.js"></script>
+
     <title>Document</title>
     <style>
         #map { height: 800px; }
@@ -19,9 +23,9 @@
 </head>
 
 <body>
+
 <!-- 위치 선정 -->
 <div id="map"></div>
-
 
 <!-- 공장 선택 -->
 
@@ -34,7 +38,6 @@
         maxZoom: 19,
         attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
     }).addTo(map);
-
 
     // Function to create hexagon coordinates
     function createHexagon(center, radius) {
@@ -59,6 +62,48 @@
 
     // Zoom the map to the hexagon
     map.fitBounds(hexagon.getBounds());
+
+    // 풍속을 받았다.
+
+    L.Hex = L.Polygon.extend({
+        initialize: function (args) {
+            console.log('arguments', JSON.stringify(arguments));
+            console.log('arguments[0]', JSON.stringify(arguments[0]));
+
+            // options = options || {};
+
+            this.center  = args[0];
+            this.size    = args[1];
+            this.options = args[2] || {};
+
+            L.Polygon.prototype.initialize.call(this, [], this.options);
+        },
+
+        points: function(center, size, map){
+            var latlngs = [0, 1, 2, 3, 4, 5, 6]
+                .map(p => this.hexCorner(center, size, p))
+                .map(p => map.layerPointToLatLng(p));
+            return latlngs;
+        },
+
+        hexCorner: function(center, size, i){
+            var angle_deg = 60 * i - 30;
+            var angle_rad = Math.PI / 180 * angle_deg;
+
+            return [center[0] + size * Math.cos(angle_rad),
+                center[1] + size * Math.sin(angle_rad)]
+        },
+    })
+
+    L.hex = function(){ return new L.Hex(arguments) }
+
+
+    // wind를 10 m/s 가정, 풍향 남쪽으로 가정
+    var wind_power = 10;
+    var wind_direction = 170; // 남쪽
+    var time = 30 // 30분간 측정한 값들의 평균
+
+    var distance = wind_power * time;
 
 
 </script>
