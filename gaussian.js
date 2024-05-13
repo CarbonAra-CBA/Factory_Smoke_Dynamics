@@ -7,6 +7,8 @@
 // const H = 100; // 배출 높이 (m)
 // 가우시안 유체 확산 모델 계산 식
 
+// ? 풍향을 안 받았네
+
 function calculateConcentration(Q, u, sigmaY, sigmaZ, H, x, y, z) {
     const exp = Math.exp;
     const pi = Math.PI;

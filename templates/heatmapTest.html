@@ -29,12 +29,13 @@
   const u = 5; // 평균 풍속 (m/s)
   const sigmaY = 20; // 수평 확산 계수 (m)
   const sigmaZ = 10; // 수직 확산 계수 (m)
-  const H = 100; // 배출 높이 (m)
+  const H = 35; // 배출 높이 (m)      // 최대 높이가 거의 50m입니다.
 
   let startLat = 35.1188093910081;
   let startLng = 128.96808496718;
   let n = 50  ;
   let hexDist = 0.01;
+  let angle = 350;
 
   // 맵과 히트맵 레이어 초기화
   var map = L.map('map', {
@@ -53,20 +54,69 @@
   // hexGrid 반환 값 형태 [위도,경도]
   let hexList = hexFill(startLat, startLng, n, hexDist);
 
+  // 지수형태의 density를
+  function removeExponential(numberInExponential) {
+    // e 지수 형식의 숫자를 받아서 처리
+    if (typeof numberInExponential !== 'number') {
+      console.error('Invalid input. Please provide a valid number.');
+      return null;
+    }
+    // 지수 형식의 문자열로 변환
+    const numberAsString = numberInExponential.toString();
+    // e 지수의 위치 확인
+    const indexOfE = numberAsString.indexOf('e');
+    // e 지수가 없으면 그대로 반환
+    if (indexOfE === -1) {
+      return numberInExponential;
+    }
+    // e 지수를 기준으로 숫자와 지수 부분 분리
+    const base = parseFloat(numberAsString.slice(0, indexOfE));
+    // console.log(base);
+    const exponent = parseInt(numberAsString.slice(indexOfE + 2));
+    // console.log(exponent)
+    // base * Math.pow(10, exponent)
+    // 숫자와 지수를 곱하여 반환
+    return base;
+  }
+
+  function normalizeValues(values) {
+    // 주어진 값들 중 가장 작은 값을 찾음
+    const minValue = Math.min(...values);
+
+    // 정규화된 값을 저장할 배열
+    const normalizedValues = [];
+
+    // 모든 값에 대해 정규화 수행
+    for (let value of values) {
+      // 가장 작은 값을 뺀 값
+      const diff = value - minValue;
+
+      // 음수인 경우 0으로 처리
+      const normalizedValue = Math.max(diff, 0);
+
+      // 정규화된 값은 가장 작은 값으로부터의 차이값을 사용
+      normalizedValues.push(normalizedValue);
+    }
+
+    return normalizedValues;
+  }
+
   function generateDensityData(hexList) {
     return hexList.map(location => {
       const latitude = location[0];
       const longitude = location[1];
-      const density = calculateConcentration(Q,u,sigmaY,sigmaZ,H,latitude, longitude,1);
+      let density = calculateConcentration(Q,u,sigmaY,sigmaZ,H,latitude, longitude,1);
+      density = (removeExponential(density) - 6.8) * 100; // 5.3으로 만들기 위해 100을 곱함
       return { latitude, longitude, density };
     });
   }
-
   let densityData = generateDensityData(hexList);
 
+  // densityData = normalizeValues(densityData);
+  console.log(densityData)
   // 히트맵 설정 객체
   var cfg = {
-    radius: 100,    //
+    radius: 80,    //
     maxOpacity: .5, // .5
     scaleRadius: false,
     useLocalExtrema: true,
@@ -79,13 +129,33 @@
   var heatmapLayer = new HeatmapOverlay(cfg).addTo(map);
 
   var testData = {
-    max: 20, // 이 값은 조정이 필요할 수 있습니다. 데이터에 따라 최대값 설정, 어떤 값이 max?..
+    max: 9, // 이 값은 조정이 필요할 수 있습니다. 데이터에 따라 최대값 설정, 어떤 값이 max?..
     data: densityData
   };
 
+  function drawLineFromPointWithAngle(latitude, longitude, angle, distance) {
+    // Convert angle from degrees to radians
+    var angleRad = angle * Math.PI / 180;
+
+    // Earth's radius in meters
+    var earthRadius = 6378137;
+
+    // Calculate the new latitude and longitude
+    var newLatitude = latitude + (distance / earthRadius) * (Math.cos(angleRad) / Math.PI) * 180;
+    var newLongitude = longitude + (distance / earthRadius) * (Math.sin(angleRad) / Math.PI) * 180;
+
+    // Create a polyline using Leaflet.js or other mapping libraries
+    // For example, in Leaflet.js:
+    var startPoint = L.latLng(latitude, longitude);
+    var endPoint = L.latLng(newLatitude, newLongitude);
+    var polyline = L.polyline([startPoint, endPoint], { color: 'red' }).addTo(map);
+  }
+  drawLineFromPointWithAngle(startLat,startLng,angle,5000)
   console.log(testData);
-  // heatmap 데이터 붙이기
-  heatmapLayer.setData(testData);
+
+  // 풍향에 따라 선을 그리자.. 그리고 그 선
+
+  // heatmapLayer.setData(testData);
 
 </script>
 </body>
