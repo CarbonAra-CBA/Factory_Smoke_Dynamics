@@ -13,7 +13,7 @@
   <script src="https://cdn.jsdelivr.net/npm/leaflet-heatmap@1.0.0/leaflet-heatmap.min.js"></script>
 
   <style>
-    #map { width: 600px; height: 450px; }
+    #map { width: 900px; height: 800px; }
   </style>
 </head>
 <body>
@@ -25,15 +25,17 @@
 <script src="../gaussian.js"></script>
 <script>
 
-  const Q = 100; // 배출량 (g/s)
-  const u = 5; // 평균 풍속 (m/s)
+  const Q = 20; // 배출량 (g/s)
+  const u = 2.0; // 평균 풍속 (m/s)
   const sigmaY = 20; // 수평 확산 계수 (m)
   const sigmaZ = 10; // 수직 확산 계수 (m)
   const H = 35; // 배출 높이 (m)      // 최대 높이가 거의 50m입니다.
 
   let startLat = 35.1188093910081;
   let startLng = 128.96808496718;
-  let n = 50  ;
+  let distance = 0.0;
+  let pointDist = 0.0;
+  let n = 50;
   let hexDist = 0.01;
   let angle = 350;
 
@@ -48,11 +50,13 @@
     attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
   }).addTo(map);
 
+  // 풍속 데이터에 따른 예상 이동 경로의 길이 계산
+  distance = calcul_moveDist(u, 30);
+  pointDist = distance / n;
   // 시작점 농도
-  let start_density = calculateConcentration(Q,u,sigmaY,sigmaZ,H,startLat,startLng,1);
-
-  // hexGrid 반환 값 형태 [위도,경도]
-  let hexList = hexFill(startLat, startLng, n, hexDist);
+  let start_density = calculateConcentration(Q,u,sigmaY,sigmaZ,H,0,0,1);
+  // 예상 이동 경로 위에 일정한 간격으로 측정 위치 할당.
+  let pointList = pointSet(startLat, startLng, n, distance, angle);
 
   // 지수형태의 density를
   function removeExponential(numberInExponential) {
@@ -101,22 +105,32 @@
     return normalizedValues;
   }
 
-  function generateDensityData(hexList) {
-    return hexList.map(location => {
+  function generateDensityData(pointList) {
+    return pointList.map(location => {
       const latitude = location[0];
       const longitude = location[1];
-      let density = calculateConcentration(Q,u,sigmaY,sigmaZ,H,latitude, longitude,1);
-      density = (removeExponential(density) - 6.8) * 100; // 5.3으로 만들기 위해 100을 곱함
+      let x = latToKm(startLat - latitude);
+      let y = lngToKm(latitude, startLng - longitude);
+      let density = calculateConcentration(Q,u,sigmaY,sigmaZ,H, x, y, 1);
+      density = removeExponential(density) * (10 ** 11);
       return { latitude, longitude, density };
     });
   }
-  let densityData = generateDensityData(hexList);
+  let densityData = generateDensityData(pointList);
 
   // densityData = normalizeValues(densityData);
   console.log(densityData)
+  let maxDensity = densityData[0].density;
+  let minDensity = densityData[n].density;
+  let range = maxDensity - minDensity;
+  for(let i = 0; i <= n; i++)  {
+    densityData[i].density -= minDensity;
+  }
   // 히트맵 설정 객체
   var cfg = {
-    radius: 80,    //
+    min : 0,
+    max : range,
+    radius: 50,    //
     maxOpacity: .5, // .5
     scaleRadius: false,
     useLocalExtrema: true,
@@ -133,29 +147,19 @@
     data: densityData
   };
 
-  function drawLineFromPointWithAngle(latitude, longitude, angle, distance) {
-    // Convert angle from degrees to radians
-    var angleRad = angle * Math.PI / 180;
-
-    // Earth's radius in meters
-    var earthRadius = 6378137;
-
-    // Calculate the new latitude and longitude
-    var newLatitude = latitude + (distance / earthRadius) * (Math.cos(angleRad) / Math.PI) * 180;
-    var newLongitude = longitude + (distance / earthRadius) * (Math.sin(angleRad) / Math.PI) * 180;
-
-    // Create a polyline using Leaflet.js or other mapping libraries
-    // For example, in Leaflet.js:
-    var startPoint = L.latLng(latitude, longitude);
-    var endPoint = L.latLng(newLatitude, newLongitude);
-    var polyline = L.polyline([startPoint, endPoint], { color: 'red' }).addTo(map);
+  // 찍은 점들 마커로 위치 표시하기
+  function addMarkersToMap(map, coords, n) {
+    for(let i = 0; i <= n; i++) {
+      L.marker(coords[i]).addTo(map).bindPopup(`density : ${densityData[i].density}`);
+    }
   }
-  drawLineFromPointWithAngle(startLat,startLng,angle,5000)
+  //addMarkersToMap(map, pointList, n);
+
   console.log(testData);
 
   // 풍향에 따라 선을 그리자.. 그리고 그 선
 
-  // heatmapLayer.setData(testData);
+  heatmapLayer.setData(testData);
 
 </script>
 </body>
