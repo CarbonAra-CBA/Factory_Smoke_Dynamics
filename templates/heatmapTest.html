@@ -11,6 +11,7 @@
   <script src="https://unpkg.com/leaflet@1.2.0/dist/leaflet.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/heatmap.js/2.0.2/heatmap.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/leaflet-heatmap@1.0.0/leaflet-heatmap.min.js"></script>
+  <script src="https://unpkg.com/leaflet-geometryutil@0.13.1/leaflet.geometryutil.min.js"></script>
 
   <style>
     #map { width: 900px; height: 800px; }
@@ -20,7 +21,7 @@
 
 <div id="map"></div>
 
-
+V
 <script src="../fill_hex.js"></script>
 <script src="../gaussian.js"></script>
 <script>
@@ -84,13 +85,76 @@
       if(d.density - minDensity === 0) normalizedDensity = 0.000001; 
       return { ...d, density: normalizedDensity };
   });
+  // hexGrid 반환 값 형태 [위도,경도]
+  let hexList = hexFill(startLat, startLng, n, hexDist);
 
-  // 새로운 최대값과 최소값 계산
-  let newMaxDensity = Math.max(...densityData.map(d => d.density));
-  let newMinDensity = Math.min(...densityData.map(d => d.density));
-  console.log(densityData);
-  console.log(`Original Max Density: ${maxDensity}, Original Min Density: ${minDensity}, Range: ${range}`);
-  console.log(`New Max Density: ${newMaxDensity}, New Min Density: ${newMinDensity}`);
+  function normalizeValues(values) {
+    // 주어진 값들 중 가장 작은 값을 찾음
+    const minValue = Math.min(...values);
+    // 정규화된 값을 저장할 배열
+    const normalizedValues = [];
+    // 모든 값에 대해 정규화 수행
+    for (let value of values) {
+      // 가장 작은 값을 뺀 값
+      const diff = value - minValue;
+      // 음수인 경우 0으로 처리
+      const normalizedValue = Math.max(diff, 0);
+      // 정규화된 값은 가장 작은 값으로부터의 차이값을 사용
+      normalizedValues.push(normalizedValue);
+    }
+    return normalizedValues;
+  }
+
+  function generateDensityData(hexList) {
+    return hexList.map(location => {
+      const latitude = location[0];
+      const longitude = location[1];
+      let density = calculateConcentration(Q,u,sigmaY,sigmaZ,H,latitude, longitude,1);
+      density = (removeExponential(density) - 6.8) * 100; // 5.3으로 만들기 위해 100을 곱함
+      return { latitude, longitude, density };
+    });
+  }
+
+  // 공장에서 xm 거리의 점까지 이은 선을 지나가는 점들을 지도에 표시하는 함수
+  function drawPointStartToEnd(latitude, longitude, angle, distance, numOfPoint) {
+    // Convert angle from degrees to radians
+    var angleRad = angle * Math.PI / 180;
+
+    // Earth's radius in meters (mean radius)
+    var earthRadius = 6378137;
+
+    // Calculate the new latitude and longitude using the small distance approximation
+    var newLatitude = latitude + (distance * Math.cos(angleRad) / earthRadius) * (180 / Math.PI);
+    var newLongitude = longitude + (distance * Math.sin(angleRad) / (earthRadius * Math.cos(latitude * Math.PI / 180))) * (180 / Math.PI);
+
+    // Leaflet map object, ensure 'map' is already initialized and accessible
+    var startPoint = L.latLng(latitude, longitude);
+    var endPoint = L.latLng(newLatitude, newLongitude);
+    var polyline = L.polyline([startPoint, endPoint], { color: 'red' }).addTo(map);
+
+    // Calculate evenly spaced points along the line
+    var pointList = [];
+    for (let i = 0; i <= numOfPoint; i++) {
+      // Interpolate point on the line
+      var fraction = i / numOfPoint;
+      var interpolatedPoint = L.GeometryUtil.interpolateOnLine(map, polyline, fraction);
+      pointList.push({
+        latitude: interpolatedPoint.latLng.lat,
+        longitude: interpolatedPoint.latLng.lng
+      });
+    }
+
+    // Optionally: Add markers for each point to the map (for visualization)
+    pointList.forEach(function(point) {
+      L.marker([point.latitude, point.longitude]).addTo(map);
+    });
+
+    return pointList;
+  }
+  drawPointStartToEnd(35.1188093910081, 128.96808496718, 90, 5000, 10);
+
+  // densityData = normalizeValues(densityData);
+  console.log(densityData)
 
   // 히트맵 설정 객체
   var cfg = {
@@ -125,6 +189,28 @@
   // 히트맵 데이터 설정
   heatmapLayer.setData(testData);
 
+  // 각도 그리기
+  function drawLineFromPointWithAngle(latitude, longitude, angle, distance) {
+    // Convert angle from degrees to radians
+    var angleRad = angle * Math.PI / 180;
+
+    // Earth's radius in meters
+    var earthRadius = 6378137;
+
+    // Calculate the new latitude and longitude
+    var newLatitude = latitude + (distance / earthRadius) * (Math.cos(angleRad) / Math.PI) * 180;
+    var newLongitude = longitude + (distance / earthRadius) * (Math.sin(angleRad) / Math.PI) * 180;
+
+    // Create a polyline using Leaflet.js or other mapping libraries
+    // For example, in Leaflet.js:
+    var startPoint = L.latLng(latitude, longitude);
+    var endPoint = L.latLng(newLatitude, newLongitude);
+    var polyline = L.polyline([startPoint, endPoint], { color: 'red' }).addTo(map);
+  }
+
+
+
+  drawLineFromPointWithAngle(startLat,startLng,angle,5000)
   console.log(testData);
 
   // 풍향에 따라 선을 그리자.. 그리고 그 선

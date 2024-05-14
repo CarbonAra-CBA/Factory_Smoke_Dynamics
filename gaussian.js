@@ -19,13 +19,6 @@ function calculateConcentration(Q, u, sigmaY, sigmaZ, H, x, y, z) {
     return part1 * part2 * part3;
 }
 
-
-
-
-
-
-
-
 /* 보류 코드 - ByeongSu 관리 ##############################################################################*/
 
 // 매연 확산을 타원으로 나타내보자 함수
