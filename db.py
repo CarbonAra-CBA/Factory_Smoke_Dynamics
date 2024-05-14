@@ -135,7 +135,7 @@ def factCall(area, step): #
         factCall(area, step + 1)
 
 
-def first_data(): # base_data.json을 불러와서 같은 공장명이 있다면 더해주기
+def first_data(fact_data1, fact_data2): # base_data.json을 불러와서 같은 공장명이 있다면 더해주기
     with open('base_data.json', "r", encoding='utf-8') as json_file:
         base_data = json.load(json_file)
     middle_data ={
@@ -208,8 +208,8 @@ def first_data(): # base_data.json을 불러와서 같은 공장명이 있다면
         '울산광역시': list(factories.values()),
         '대전광역시' : list(factories2.values())
     }
-    with open('middle_data.json', "w", encoding='utf-8') as json_file:
-        json.dump(data, json_file, ensure_ascii=False)
+    #with open('middle_data.json', "w", encoding='utf-8') as json_file:
+        #json.dump(data, json_file, ensure_ascii=False)
     return data
 
 
@@ -372,14 +372,12 @@ def update_data():
     fact_data1 = factCall('울산', 0) #울산
     fact_data2 = factCall('대전', 0) #경상북도
 
-    data = first_data()
+    data = first_data(fact_data1, fact_data2)
 
     # data 선형보간
     for item in factory_list:
         linear(item)
-    # ??
-    with open('base_data.json', "r", encoding='utf-8') as json_file:
-        base_data = json.load(json_file)
+
 
     # 바람 데이터 추가
     final_data = wind_data_injection(data)
