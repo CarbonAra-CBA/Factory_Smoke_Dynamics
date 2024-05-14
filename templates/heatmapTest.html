@@ -26,7 +26,7 @@ V
 <script src="../gaussian.js"></script>
 <script>
   // 황산화물 기준
-  const Q = 300; // 배출량 (g/s)
+  const Q = 100; // 배출량 (g/s)
   const u = 5; // 평균 풍속 (m/s)
   const sigmaY = 20; // 수평 확산 계수 (m)
   const sigmaZ = 10; // 수직 확산 계수 (m)
@@ -36,6 +36,7 @@ V
   let startLng = 128.96808496718;
   let distance = 0.0;
   let pointDist = 0.0;
+  let hexDist = 0.01;
   let n = 30;
   let angle = 350;
 
@@ -87,6 +88,30 @@ V
   });
   // hexGrid 반환 값 형태 [위도,경도]
   let hexList = hexFill(startLat, startLng, n, hexDist);
+
+  // 지수형태의 density를 정수형태로 바꾸기
+  function removeExponential(numberInExponential) {
+    // e 지수 형식의 숫자를 받아서 처리
+    if (typeof numberInExponential !== 'number') {
+      console.error('Invalid input. Please provide a valid number.');
+      return null;
+    }
+    // 지수 형식의 문자열로 변환
+    const numberAsString = numberInExponential.toString();
+    // e 지수의 위치 확인
+    const indexOfE = numberAsString.indexOf('e');
+    // e 지수가 없으면 그대로 반환
+    if (indexOfE === -1) {
+      return numberInExponential;
+    }
+    // e 지수를 기준으로 숫자와 지수 부분 분리
+    const base = parseFloat(numberAsString.slice(0, indexOfE));
+    const exponent = parseInt(numberAsString.slice(indexOfE + 2));
+    // console.log(exponent)
+    // base * Math.pow(10, exponent)
+    // 숫자와 지수를 곱하여 반환
+    return base;
+  }
 
   function normalizeValues(values) {
     // 주어진 값들 중 가장 작은 값을 찾음
@@ -151,7 +176,7 @@ V
 
     return pointList;
   }
-  drawPointStartToEnd(35.1188093910081, 128.96808496718, 90, 5000, 10);
+  //drawPointStartToEnd(35.1188093910081, 128.96808496718, 90, 5000, 10);
 
   // densityData = normalizeValues(densityData);
   console.log(densityData)
@@ -198,8 +223,8 @@ V
     var earthRadius = 6378137;
 
     // Calculate the new latitude and longitude
-    var newLatitude = latitude + (distance / earthRadius) * (Math.cos(angleRad) / Math.PI) * 180;
-    var newLongitude = longitude + (distance / earthRadius) * (Math.sin(angleRad) / Math.PI) * 180;
+    var newLatitude = latitude - (distance / earthRadius) * (Math.cos(angleRad) / Math.PI) * 180;
+    var newLongitude = longitude - (distance / earthRadius) * (Math.sin(angleRad) / Math.PI) * 180;
 
     // Create a polyline using Leaflet.js or other mapping libraries
     // For example, in Leaflet.js:
