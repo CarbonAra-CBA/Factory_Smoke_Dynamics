@@ -8,7 +8,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 import apikey
 import json
+import db
+from flask import Flask, jsonify
 from flask import Flask
+from apscheduler.schedulers.background import BackgroundScheduler
 
 # server 구동 : cmd에서 python app.py
 
@@ -19,21 +22,18 @@ from flask import Flask
 app = Flask(__name__)
 
 @app.route('/')
-def index():
-    return render_template('index.html')
+def home():
+    return jsonify({"message": "Welcome to the Carbonara API"})
+
+@app.route('/data')
+def get_data():
+    data = list(db.collection.find({}, {"_id": 0}))  # MongoDB에서 데이터 조회
+    return jsonify(data)
+
+# Scheduler Inteval 30 min
+scheduler = BackgroundScheduler()
+scheduler.add_job(func=db.update_data, trigger="interval", minutes=30)
+scheduler.start()
 
 if __name__ == '__main__':          # app 구동
     app.run(debug=True)
-
-
-
-#-----------------------------------------------#
-
-# 매연을 중첩시키는 함수 overlap_smoke()
-# 얼마나 중첩시켜야하지?
-#
-
-# 공장의 위도,경도 Json return 함수 location_factory()
-# location_factory() --> FrontEnd(Leaflet지도) --> visualization
-
-# 경기,부산,인천 .. 이런식으로 나눠서 전달..

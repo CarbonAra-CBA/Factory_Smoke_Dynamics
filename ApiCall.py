@@ -9,6 +9,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 import apikey
 import json
+from PyKakao import Local
+from datetime import datetime
+
 #######################
 #  API Call 함수 모음  #
 ######################
@@ -89,3 +92,7 @@ def get_smoke_now(stn):
     except json.JSONDecodeError:
         print("Failed to decode JSON")
         return None
+
+## --------------------------------------------------------------------- ##
+# 공장 위치 CALL
+
