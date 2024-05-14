@@ -18,57 +18,69 @@
     </style>
 </head>
 <body>
-<div id="mapid"></div>
+<div id="map"></div>
 
 <script>
-    var lat = 35.1188093910081;
-    var lng = 128.96808496718;
-    var zoom = 16;
-    var mymap = L.map('mapid', {
-        center: [lat, lng],
-        zoom: zoom
-    });
-    L.tileLayer('http://tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mymap);
+    var map = L.map('map').setView([35.1188093910081, 128.96808496718], 14);
 
-    var pointList = [];
-    var pointCnt = 10;
-    var scale = 1000;
+// 타일 레이어 추가
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+}).addTo(map);
 
-    for (var i = 0; i < pointCnt; i++) {
-        pointList.push({
-            lat: lat + i / scale,
-            lng: lng + i / scale,
-            count: i
-        }, );
-    }
+// // 히트맵 설정 객체
+// var cfg = {
+//     radius: 50,
+//     maxOpacity: 0.5,
+//     scaleRadius: false,
+//     useLocalExtrema: true,
+//     latField: 'latitude',
+//     lngField: 'longitude',
+//     valueField: 'density',
+//     gradient: {
+//         0.0: 'blue',
+//         0.25: 'cyan',
+//         0.5: 'lime',
+//         0.75: 'yellow',
+//         1.0: 'red'
+//     },
+//     min: 0, // 최소값 설정
+//     max: 100 // 최대값 설정
+// };
 
-    for (var i = 0; i < pointCnt; i++) {
-        var point = pointList[i];
-        L.marker({
-            lat: point.lat,
-            lng: point.lng
-        }).addTo(mymap);
-    }
+// // 히트맵 레이어 생성(map에 추가)
+// var heatmapLayer = new HeatmapOverlay(cfg).addTo(map);
 
-    var cfg = {
-        "radius": 200,
-        "maxOpacity": .5,
-        //"scaleRadius": true,
-        "scaleRadius": false,
-        "useLocalExtrema": true,
-        latField: 'lat',
-        lngField: 'lng',
-        valueField: 'count'
-    };
+// // 예시 데이터 생성 함수
+// function generateDensityData() {
+//     let densityData = [];
+//     for (let i = 0; i < 50; i++) {
+//         let latitude = 35.1188093910081 + (Math.random() - 0.5) * 0.02;
+//         let longitude = 128.96808496718 + (Math.random() - 0.5) * 0.02;
+//         let density = Math.random() * 100; // 0에서 100 사이의 값을 사용
+//         densityData.push({ latitude, longitude, density });
+//     }
+//     return densityData;
+// }
 
-    var heatmapLayer = new HeatmapOverlay(cfg).addTo(mymap);
+// // 히트맵 데이터 생성
+// let densityData = generateDensityData();
 
-    var testData = {
-        max: 10,
-        data: pointList
-    }
-    // heatMap 생성하기
-    heatmapLayer.setData(testData);
+// // 히트맵 데이터 설정
+// heatmapLayer.setData({
+//     max: 100, // 히트맵의 최대값을 설정
+//     data: densityData
+// });
+
+// // 히트맵 데이터 확인
+// console.log(densityData);
+
+// // 풍향에 따라 선을 그리자.. 그리고 그 선
+// heatmapLayer.setData({
+//     max: 100, // 히트맵의 최대값을 설정
+//     data: densityData
+// });
 
 </script>
 </body>

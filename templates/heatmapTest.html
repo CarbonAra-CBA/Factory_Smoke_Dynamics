@@ -24,9 +24,9 @@
 <script src="../fill_hex.js"></script>
 <script src="../gaussian.js"></script>
 <script>
-
-  const Q = 20; // 배출량 (g/s)
-  const u = 2.0; // 평균 풍속 (m/s)
+  // 황산화물 기준
+  const Q = 300; // 배출량 (g/s)
+  const u = 5; // 평균 풍속 (m/s)
   const sigmaY = 20; // 수평 확산 계수 (m)
   const sigmaZ = 10; // 수직 확산 계수 (m)
   const H = 35; // 배출 높이 (m)      // 최대 높이가 거의 50m입니다.
@@ -35,8 +35,7 @@
   let startLng = 128.96808496718;
   let distance = 0.0;
   let pointDist = 0.0;
-  let n = 50;
-  let hexDist = 0.01;
+  let n = 30;
   let angle = 350;
 
   // 맵과 히트맵 레이어 초기화
@@ -58,108 +57,78 @@
   // 예상 이동 경로 위에 일정한 간격으로 측정 위치 할당.
   let pointList = pointSet(startLat, startLng, n, distance, angle);
 
-  // 지수형태의 density를
-  function removeExponential(numberInExponential) {
-    // e 지수 형식의 숫자를 받아서 처리
-    if (typeof numberInExponential !== 'number') {
-      console.error('Invalid input. Please provide a valid number.');
-      return null;
-    }
-    // 지수 형식의 문자열로 변환
-    const numberAsString = numberInExponential.toString();
-    // e 지수의 위치 확인
-    const indexOfE = numberAsString.indexOf('e');
-    // e 지수가 없으면 그대로 반환
-    if (indexOfE === -1) {
-      return numberInExponential;
-    }
-    // e 지수를 기준으로 숫자와 지수 부분 분리
-    const base = parseFloat(numberAsString.slice(0, indexOfE));
-    // console.log(base);
-    const exponent = parseInt(numberAsString.slice(indexOfE + 2));
-    // console.log(exponent)
-    // base * Math.pow(10, exponent)
-    // 숫자와 지수를 곱하여 반환
-    return base;
-  }
-
-  function normalizeValues(values) {
-    // 주어진 값들 중 가장 작은 값을 찾음
-    const minValue = Math.min(...values);
-
-    // 정규화된 값을 저장할 배열
-    const normalizedValues = [];
-
-    // 모든 값에 대해 정규화 수행
-    for (let value of values) {
-      // 가장 작은 값을 뺀 값
-      const diff = value - minValue;
-
-      // 음수인 경우 0으로 처리
-      const normalizedValue = Math.max(diff, 0);
-
-      // 정규화된 값은 가장 작은 값으로부터의 차이값을 사용
-      normalizedValues.push(normalizedValue);
-    }
-
-    return normalizedValues;
-  }
-
+  // 히트맵 데이터 생성 함수
   function generateDensityData(pointList) {
     return pointList.map(location => {
-      const latitude = location[0];
-      const longitude = location[1];
-      let x = latToKm(startLat - latitude);
-      let y = lngToKm(latitude, startLng - longitude);
-      let density = calculateConcentration(Q,u,sigmaY,sigmaZ,H, x, y, 1);
-      density = removeExponential(density) * (10 ** 11);
-      return { latitude, longitude, density };
+        const latitude = location[0];
+        const longitude = location[1];
+        let x = latToKm(startLat - latitude);
+        let y = lngToKm(latitude, startLng - longitude);
+        let density = calculateConcentration(Q, u, sigmaY, sigmaZ, H, x, y, 1);
+        density = density * (10 ** 11);
+        return { latitude, longitude, density };
     });
   }
+
+  // 히트맵 데이터 생성
   let densityData = generateDensityData(pointList);
 
-  // densityData = normalizeValues(densityData);
-  console.log(densityData)
-  let maxDensity = densityData[0].density;
-  let minDensity = densityData[n].density;
-  let range = maxDensity - minDensity;
-  for(let i = 0; i <= n; i++)  {
-    densityData[i].density -= minDensity;
-  }
+  // 최대값과 최소값 계산
+  let maxDensity = Math.max(...densityData.map(d => d.density));
+  let minDensity = Math.min(...densityData.map(d => d.density));
+  const range = maxDensity - minDensity;
+
+  // 데이터 스케일링 및 Q 값을 고려하여 조정
+  densityData = densityData.map(d => {
+      let normalizedDensity = (d.density - minDensity) / range * (Q / 300);
+      if(d.density - minDensity === 0) normalizedDensity = 0.000001; 
+      return { ...d, density: normalizedDensity };
+  });
+
+  // 새로운 최대값과 최소값 계산
+  let newMaxDensity = Math.max(...densityData.map(d => d.density));
+  let newMinDensity = Math.min(...densityData.map(d => d.density));
+  console.log(densityData);
+  console.log(`Original Max Density: ${maxDensity}, Original Min Density: ${minDensity}, Range: ${range}`);
+  console.log(`New Max Density: ${newMaxDensity}, New Min Density: ${newMinDensity}`);
+
   // 히트맵 설정 객체
   var cfg = {
-    min : 0,
-    max : range,
-    radius: 50,    //
-    maxOpacity: .5, // .5
-    scaleRadius: false,
-    useLocalExtrema: true,
-    latField: 'latitude',
-    lngField: 'longitude',
-    valueField: 'density' // 농도
+      min : 0,
+      max : 1,
+      radius: 50,
+      maxOpacity: 0.5,
+      scaleRadius: false,
+      useLocalExtrema: false,
+      latField: 'latitude',
+      lngField: 'longitude',
+      valueField: 'density',
+      gradient: {
+        0.0: 'blue',
+        0.2: 'cyan',
+        0.4: 'lime',
+        0.6: 'yellow',
+        0.8: 'orange',
+        1.0: 'red',
+      }
   };
 
   // 히트맵 레이어 생성(map에 추가)
   var heatmapLayer = new HeatmapOverlay(cfg).addTo(map);
 
   var testData = {
-    max: 9, // 이 값은 조정이 필요할 수 있습니다. 데이터에 따라 최대값 설정, 어떤 값이 max?..
-    data: densityData
+      min : 0,
+      max: 1, // 데이터의 최대값을 1로 설정
+      data: densityData
   };
 
-  // 찍은 점들 마커로 위치 표시하기
-  function addMarkersToMap(map, coords, n) {
-    for(let i = 0; i <= n; i++) {
-      L.marker(coords[i]).addTo(map).bindPopup(`density : ${densityData[i].density}`);
-    }
-  }
-  //addMarkersToMap(map, pointList, n);
+  // 히트맵 데이터 설정
+  heatmapLayer.setData(testData);
 
   console.log(testData);
 
   // 풍향에 따라 선을 그리자.. 그리고 그 선
-
-  heatmapLayer.setData(testData);
+  heatmapLayer.setData(testData); 
 
 </script>
 </body>
