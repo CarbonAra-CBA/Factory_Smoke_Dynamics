@@ -32,7 +32,7 @@ def get_data():
 
 # Scheduler Inteval 30 min
 scheduler = BackgroundScheduler()
-scheduler.add_job(func=db.update_data, trigger="interval", minutes=30)
+scheduler.add_job(func=db.update_factory_data, trigger="interval", minutes=30)
 scheduler.start()
 
 if __name__ == '__main__':          # app 구동
