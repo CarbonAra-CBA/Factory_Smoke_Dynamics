@@ -26,7 +26,8 @@ V
 <script src="../gaussian.js"></script>
 <script>
   // 황산화물 기준
-  const Q = 100; // 배출량 (g/s)
+  const Q = 200; // 배출량 (g/s)
+  const maxQ = 300;
   const u = 5; // 평균 풍속 (m/s)
   const sigmaY = 20; // 수평 확산 계수 (m)
   const sigmaZ = 10; // 수직 확산 계수 (m)
@@ -51,8 +52,9 @@ V
     attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
   }).addTo(map);
 
-  // 풍속 데이터에 따른 예상 이동 경로의 길이 계산
+  // 풍속 데이터에 따른 예상 이동 경로의 길이 계산(km)
   distance = calcul_moveDist(u, 30);
+  // 경로 내 각 측정점 간의 직선거리(km)
   pointDist = distance / n;
   // 시작점 농도
   let start_density = calculateConcentration(Q,u,sigmaY,sigmaZ,H,0,0,1);
@@ -67,7 +69,7 @@ V
         let x = latToKm(startLat - latitude);
         let y = lngToKm(latitude, startLng - longitude);
         let density = calculateConcentration(Q, u, sigmaY, sigmaZ, H, x, y, 1);
-        density = density * (10 ** 11);
+        density = density * (10 ** 11); // 너무 작은 값이라서 자릿수 늘리기
         return { latitude, longitude, density };
     });
   }
@@ -82,103 +84,17 @@ V
 
   // 데이터 스케일링 및 Q 값을 고려하여 조정
   densityData = densityData.map(d => {
-      let normalizedDensity = (d.density - minDensity) / range * (Q / 300);
+      // x1 = (d.density - minDensity) -> 0~range 값으로 정규화
+      let x1 = d.density - minDensity;
+      // x2 = x1 / range -> 0 ~ 1 범위 내 값으로 정규화
+      let x2 = x1 / range;
+      // x3 = x2 * (Q / maxQ) -> 실제 배출량 비율을 포함한 값으로 정규화
+      let x3 = x2 * (Q / maxQ);
+      let normalizedDensity = x3;
+      // 완전히 0이 되면 이상하게 최대 색상값으로 히트맵이 인식 하는듯, 그래서 0인 값은 아주 작은 값으로 보정
       if(d.density - minDensity === 0) normalizedDensity = 0.000001; 
       return { ...d, density: normalizedDensity };
   });
-  // hexGrid 반환 값 형태 [위도,경도]
-  let hexList = hexFill(startLat, startLng, n, hexDist);
-
-  // 지수형태의 density를 정수형태로 바꾸기
-  function removeExponential(numberInExponential) {
-    // e 지수 형식의 숫자를 받아서 처리
-    if (typeof numberInExponential !== 'number') {
-      console.error('Invalid input. Please provide a valid number.');
-      return null;
-    }
-    // 지수 형식의 문자열로 변환
-    const numberAsString = numberInExponential.toString();
-    // e 지수의 위치 확인
-    const indexOfE = numberAsString.indexOf('e');
-    // e 지수가 없으면 그대로 반환
-    if (indexOfE === -1) {
-      return numberInExponential;
-    }
-    // e 지수를 기준으로 숫자와 지수 부분 분리
-    const base = parseFloat(numberAsString.slice(0, indexOfE));
-    const exponent = parseInt(numberAsString.slice(indexOfE + 2));
-    // console.log(exponent)
-    // base * Math.pow(10, exponent)
-    // 숫자와 지수를 곱하여 반환
-    return base;
-  }
-
-  function normalizeValues(values) {
-    // 주어진 값들 중 가장 작은 값을 찾음
-    const minValue = Math.min(...values);
-    // 정규화된 값을 저장할 배열
-    const normalizedValues = [];
-    // 모든 값에 대해 정규화 수행
-    for (let value of values) {
-      // 가장 작은 값을 뺀 값
-      const diff = value - minValue;
-      // 음수인 경우 0으로 처리
-      const normalizedValue = Math.max(diff, 0);
-      // 정규화된 값은 가장 작은 값으로부터의 차이값을 사용
-      normalizedValues.push(normalizedValue);
-    }
-    return normalizedValues;
-  }
-
-  function generateDensityData(hexList) {
-    return hexList.map(location => {
-      const latitude = location[0];
-      const longitude = location[1];
-      let density = calculateConcentration(Q,u,sigmaY,sigmaZ,H,latitude, longitude,1);
-      density = (removeExponential(density) - 6.8) * 100; // 5.3으로 만들기 위해 100을 곱함
-      return { latitude, longitude, density };
-    });
-  }
-
-  // 공장에서 xm 거리의 점까지 이은 선을 지나가는 점들을 지도에 표시하는 함수
-  function drawPointStartToEnd(latitude, longitude, angle, distance, numOfPoint) {
-    // Convert angle from degrees to radians
-    var angleRad = angle * Math.PI / 180;
-
-    // Earth's radius in meters (mean radius)
-    var earthRadius = 6378137;
-
-    // Calculate the new latitude and longitude using the small distance approximation
-    var newLatitude = latitude + (distance * Math.cos(angleRad) / earthRadius) * (180 / Math.PI);
-    var newLongitude = longitude + (distance * Math.sin(angleRad) / (earthRadius * Math.cos(latitude * Math.PI / 180))) * (180 / Math.PI);
-
-    // Leaflet map object, ensure 'map' is already initialized and accessible
-    var startPoint = L.latLng(latitude, longitude);
-    var endPoint = L.latLng(newLatitude, newLongitude);
-    var polyline = L.polyline([startPoint, endPoint], { color: 'red' }).addTo(map);
-
-    // Calculate evenly spaced points along the line
-    var pointList = [];
-    for (let i = 0; i <= numOfPoint; i++) {
-      // Interpolate point on the line
-      var fraction = i / numOfPoint;
-      var interpolatedPoint = L.GeometryUtil.interpolateOnLine(map, polyline, fraction);
-      pointList.push({
-        latitude: interpolatedPoint.latLng.lat,
-        longitude: interpolatedPoint.latLng.lng
-      });
-    }
-
-    // Optionally: Add markers for each point to the map (for visualization)
-    pointList.forEach(function(point) {
-      L.marker([point.latitude, point.longitude]).addTo(map);
-    });
-
-    return pointList;
-  }
-  //drawPointStartToEnd(35.1188093910081, 128.96808496718, 90, 5000, 10);
-
-  // densityData = normalizeValues(densityData);
   console.log(densityData)
 
   // 히트맵 설정 객체
@@ -192,6 +108,7 @@ V
       latField: 'latitude',
       lngField: 'longitude',
       valueField: 'density',
+      // 0~1까지 각 비율에 어떤 색상을 할당할 지 결정
       gradient: {
         0.0: 'blue',
         0.2: 'cyan',
@@ -213,29 +130,6 @@ V
 
   // 히트맵 데이터 설정
   heatmapLayer.setData(testData);
-
-  // 각도 그리기
-  function drawLineFromPointWithAngle(latitude, longitude, angle, distance) {
-    // Convert angle from degrees to radians
-    var angleRad = angle * Math.PI / 180;
-
-    // Earth's radius in meters
-    var earthRadius = 6378137;
-
-    // Calculate the new latitude and longitude
-    var newLatitude = latitude - (distance / earthRadius) * (Math.cos(angleRad) / Math.PI) * 180;
-    var newLongitude = longitude - (distance / earthRadius) * (Math.sin(angleRad) / Math.PI) * 180;
-
-    // Create a polyline using Leaflet.js or other mapping libraries
-    // For example, in Leaflet.js:
-    var startPoint = L.latLng(latitude, longitude);
-    var endPoint = L.latLng(newLatitude, newLongitude);
-    var polyline = L.polyline([startPoint, endPoint], { color: 'red' }).addTo(map);
-  }
-
-
-
-  drawLineFromPointWithAngle(startLat,startLng,angle,5000)
   console.log(testData);
 
   // 풍향에 따라 선을 그리자.. 그리고 그 선
