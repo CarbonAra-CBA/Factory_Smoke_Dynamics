@@ -133,14 +133,23 @@ def update_factory_data():
                 return None
             factCall(area, step + 1)
 
-
-    def first_data(): # base_data.json을 불러와서 같은 공장명이 있다면 더해주기
+    def first_data(fact_data1, fact_data2):  # base_data.json을 불러와서 같은 공장명이 있다면 더해주기
         with open('base_data.json', "r", encoding='utf-8') as json_file:
             base_data = json.load(json_file)
-        middle_data ={
+        middle_data = {
             "울산광역시": [],
-            "대전광역시" : []
+            "대전광역시": []
         }
+        try:
+            with open('finally_data.json', "r", encoding='utf-8') as json_file:
+                finally_data = json.load(json_file)
+        except FileNotFoundError:
+            finally_data = {
+                "울산광역시": [],
+                "대전광역시": []
+            }
+
+        # 울산
         for item in base_data['울산광역시']:
             for item2 in fact_data1['response']['body']['items']:
                 if item2['sox_mesure_value'] == None:
@@ -153,11 +162,11 @@ def update_factory_data():
                     time = mesure_dt.strftime('%H:%M')
                     new_data = {
                         "fact_manage_nm": item['fact_manage_nm'],
-                        "address" : item['address'],
-                        "SOX" : item2['sox_mesure_value'],
-                        "x_coord" : item['x_coord'],
-                        "y_coord" : item['y_coord'],
-                        "time" : time,
+                        "address": item['address'],
+                        "SOX": item2['sox_mesure_value'],
+                        "x_coord": item['x_coord'],
+                        "y_coord": item['y_coord'],
+                        "time": time,
                     }
                     middle_data['울산광역시'].append(new_data)
         factories = {}
@@ -172,7 +181,7 @@ def update_factory_data():
                 # 이미 등록된 공장인 경우, SOX 값만 누적
                 factories[name]['SOX'] += float(entry['SOX'])
 
-        #포항
+        # 대전
         for item in base_data['대전광역시']:
             for item2 in fact_data2['response']['body']['items']:
                 if item2['sox_mesure_value'] == None:
@@ -185,11 +194,11 @@ def update_factory_data():
                     time = mesure_dt.strftime('%H:%M')
                     new_data = {
                         "fact_manage_nm": item['fact_manage_nm'],
-                        "address" : item['address'],
-                        "SOX" : item2['sox_mesure_value'],
-                        "x_coord" : item['x_coord'],
-                        "y_coord" : item['y_coord'],
-                        "time" : time,
+                        "address": item['address'],
+                        "SOX": item2['sox_mesure_value'],
+                        "x_coord": item['x_coord'],
+                        "y_coord": item['y_coord'],
+                        "time": time,
                     }
                     middle_data['대전광역시'].append(new_data)
         factories2 = {}
@@ -205,12 +214,13 @@ def update_factory_data():
                 factories2[name]['SOX'] += float(entry['SOX'])
         data = {
             '울산광역시': list(factories.values()),
-            '대전광역시' : list(factories2.values())
+            '대전광역시': list(factories2.values())
         }
-        with open('middle_data.json', "w", encoding='utf-8') as json_file:
+        finally_data['울산광역시'].extend(factories.values())
+        finally_data['대전광역시'].extend(factories2.values())
+        with open('finally_data.json', "w", encoding='utf-8') as json_file:
             json.dump(data, json_file, ensure_ascii=False)
-        return data
-
+        return finally_data
 
     def linear(factory_name): # 특정시 매개변수 보내면 그 시간 기준으로 이후에 데이터들을 Time에 추가 한 다음 선형보간 firstData에서 return해준 것을 매개변수로 보내기
         # db를 순회하면서 공장명이 같다면 시간 Sox양 축출해서 Time과 Sox에 넣어주면 30분단위로 보간후 리샘플링합니다
