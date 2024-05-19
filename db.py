@@ -136,81 +136,93 @@ def factCall(area, step): #
 
 
 def first_data(fact_data1, fact_data2): # base_data.json을 불러와서 같은 공장명이 있다면 더해주기
-    with open('base_data.json', "r", encoding='utf-8') as json_file:
-        base_data = json.load(json_file)
-    middle_data ={
-        "울산광역시": [],
-        "대전광역시" : []
-    }
-    for item in base_data['울산광역시']:
-        for item2 in fact_data1['response']['body']['items']:
-            if item2['sox_mesure_value'] == None:
-                continue
-            elif is_number(item2['sox_mesure_value']) == False:
-                continue
+  with open('base_data.json', "r", encoding='utf-8') as json_file:
+    base_data = json.load(json_file)
+  middle_data ={
+      "울산광역시": [],
+      "대전광역시" : []
+  }
+  try:
+    with open('finally_data.json', "r", encoding='utf-8') as json_file:
+      finally_data = json.load(json_file)
+  except FileNotFoundError:
+    finally_data = {
+            "울산광역시": [],
+            "대전광역시": []
+        }
+  
+  #울산
+  for item in base_data['울산광역시']:
+    for item2 in fact_data1['response']['body']['items']:
+      if item2['sox_mesure_value'] == None:
+        continue
+      elif is_number(item2['sox_mesure_value']) == False:
+        continue
 
-            if item['fact_manage_nm'] == item2['fact_manage_nm']:
-                mesure_dt = datetime.strptime(item2['mesure_dt'], '%Y-%m-%d %H:%M')
-                time = mesure_dt.strftime('%H:%M')
-                new_data = {
-                    "fact_manage_nm": item['fact_manage_nm'],
-                    "address" : item['address'],
-                    "SOX" : item2['sox_mesure_value'],
-                    "x_coord" : item['x_coord'],
-                    "y_coord" : item['y_coord'],
-                    "time" : time,
-                }
-                middle_data['울산광역시'].append(new_data)
-    factories = {}
+      if item['fact_manage_nm'] == item2['fact_manage_nm']:
+        mesure_dt = datetime.strptime(item2['mesure_dt'], '%Y-%m-%d %H:%M')
+        time = mesure_dt.strftime('%H:%M')
+        new_data = {
+            "fact_manage_nm": item['fact_manage_nm'],
+            "address" : item['address'],
+            "SOX" : item2['sox_mesure_value'],
+            "x_coord" : item['x_coord'],
+            "y_coord" : item['y_coord'],
+            "time" : time,
+        }
+        middle_data['울산광역시'].append(new_data)
+  factories = {}
 
-    for entry in middle_data['울산광역시']:
-        name = entry['fact_manage_nm']
-        if name not in factories:
-            # 공장이 처음 나올 경우, 정보 등록
-            factories[name] = entry.copy()  # 현재 entry를 복사하여 저장
-            factories[name]['SOX'] = float(entry['SOX'])  # 문자열을 실수로 변환
-        else:
-            # 이미 등록된 공장인 경우, SOX 값만 누적
-            factories[name]['SOX'] += float(entry['SOX'])
+  for entry in middle_data['울산광역시']:
+    name = entry['fact_manage_nm']
+    if name not in factories:
+        # 공장이 처음 나올 경우, 정보 등록
+        factories[name] = entry.copy()  # 현재 entry를 복사하여 저장
+        factories[name]['SOX'] = float(entry['SOX'])  # 문자열을 실수로 변환
+    else:
+        # 이미 등록된 공장인 경우, SOX 값만 누적
+        factories[name]['SOX'] += float(entry['SOX'])
 
-    #포항
-    for item in base_data['대전광역시']:
-        for item2 in fact_data2['response']['body']['items']:
-            if item2['sox_mesure_value'] == None:
-                continue
-            elif is_number(item2['sox_mesure_value']) == False:
-                continue
+  #대전
+  for item in base_data['대전광역시']:
+    for item2 in fact_data2['response']['body']['items']:
+      if item2['sox_mesure_value'] == None:
+        continue
+      elif is_number(item2['sox_mesure_value']) == False:
+        continue
 
-            if item['fact_manage_nm'] == item2['fact_manage_nm']:
-                mesure_dt = datetime.strptime(item2['mesure_dt'], '%Y-%m-%d %H:%M')
-                time = mesure_dt.strftime('%H:%M')
-                new_data = {
-                    "fact_manage_nm": item['fact_manage_nm'],
-                    "address" : item['address'],
-                    "SOX" : item2['sox_mesure_value'],
-                    "x_coord" : item['x_coord'],
-                    "y_coord" : item['y_coord'],
-                    "time" : time,
-                }
-                middle_data['대전광역시'].append(new_data)
-    factories2 = {}
+      if item['fact_manage_nm'] == item2['fact_manage_nm']:
+        mesure_dt = datetime.strptime(item2['mesure_dt'], '%Y-%m-%d %H:%M')
+        time = mesure_dt.strftime('%H:%M')
+        new_data = {
+            "fact_manage_nm": item['fact_manage_nm'],
+            "address" : item['address'],
+            "SOX" : item2['sox_mesure_value'],
+            "x_coord" : item['x_coord'],
+            "y_coord" : item['y_coord'],
+            "time" : time,
+        }
+        middle_data['대전광역시'].append(new_data)
+  factories2 = {}
 
-    for entry in middle_data['대전광역시']:
-        name = entry['fact_manage_nm']
-        if name not in factories2:
-            # 공장이 처음 나올 경우, 정보 등록
-            factories2[name] = entry.copy()  # 현재 entry를 복사하여 저장
-            factories2[name]['SOX'] = float(entry['SOX'])  # 문자열을 실수로 변환
-        else:
-            # 이미 등록된 공장인 경우, SOX 값만 누적
-            factories2[name]['SOX'] += float(entry['SOX'])
-    data = {
-        '울산광역시': list(factories.values()),
-        '대전광역시' : list(factories2.values())
-    }
-    #with open('middle_data.json', "w", encoding='utf-8') as json_file:
-        #json.dump(data, json_file, ensure_ascii=False)
-    return data
+  for entry in middle_data['대전광역시']:
+    name = entry['fact_manage_nm']
+    if name not in factories2:
+        # 공장이 처음 나올 경우, 정보 등록
+        factories2[name] = entry.copy()  # 현재 entry를 복사하여 저장
+        factories2[name]['SOX'] = float(entry['SOX'])  # 문자열을 실수로 변환
+    else:
+        # 이미 등록된 공장인 경우, SOX 값만 누적
+        factories2[name]['SOX'] += float(entry['SOX'])
+  data = {
+      '울산광역시': list(factories.values()),
+      '대전광역시' : list(factories2.values())
+  }
+  finally_data['울산광역시'].extend(factories.values())
+  finally_data['대전광역시'].extend(factories2.values())
+  with open('finally_data.json', "w", encoding='utf-8') as json_file:
+    json.dump(data, json_file, ensure_ascii=False)
+  return finally_data
 
 
 def linear(factory_name): # 특정시 매개변수 보내면 그 시간 기준으로 이후에 데이터들을 Time에 추가 한 다음 선형보간 firstData에서 return해준 것을 매개변수로 보내기
