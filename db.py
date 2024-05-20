@@ -38,6 +38,7 @@ logging.basicConfig(level=logging.INFO)
 #     tls=True,
 #     tlsAllowInvalidCertificates=False
 # )
+
 # db = client['carbonara_db']
 # collection = db['factory_data']
 
