@@ -22,118 +22,37 @@
 <div id="map"></div>
 
 V
-<script src="../fill_hex.js"></script>
-<script src="../gaussian.js"></script>
+<!-- <script src="../fill_hex.js"></script>
+<script src="../gaussian.js"></script> -->
+<script src="../heatmap_smoke.js"></script>
 <script>
-  // 황산화물 기준
-  const Q = 200; // 배출량 (g/s)
-  const maxQ = 300;
-  const u = 5; // 평균 풍속 (m/s)
-  const sigmaY = 20; // 수평 확산 계수 (m)
-  const sigmaZ = 10; // 수직 확산 계수 (m)
-  const H = 35; // 배출 높이 (m)      // 최대 높이가 거의 50m입니다.
-
-  let startLat = 35.1188093910081;
-  let startLng = 128.96808496718;
-  let distance = 0.0;
-  let pointDist = 0.0;
-  let hexDist = 0.01;
-  let n = 30;
-  let angle = 350;
-
-  // 맵과 히트맵 레이어 초기화
-  var map = L.map('map', {
-    center: [startLat, startLng],
-    zoom: 14,
-  });
-
-  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 19,
-    attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-  }).addTo(map);
-
-  // 풍속 데이터에 따른 예상 이동 경로의 길이 계산(km)
-  distance = calcul_moveDist(u, 30);
-  // 경로 내 각 측정점 간의 직선거리(km)
-  pointDist = distance / n;
-  // 시작점 농도
-  let start_density = calculateConcentration(Q,u,sigmaY,sigmaZ,H,0,0,1);
-  // 예상 이동 경로 위에 일정한 간격으로 측정 위치 할당.
-  let pointList = pointSet(startLat, startLng, n, distance, angle);
-
-  // 히트맵 데이터 생성 함수
-  function generateDensityData(pointList) {
-    return pointList.map(location => {
-        const latitude = location[0];
-        const longitude = location[1];
-        let x = latToKm(startLat - latitude);
-        let y = lngToKm(latitude, startLng - longitude);
-        let density = calculateConcentration(Q, u, sigmaY, sigmaZ, H, x, y, 1);
-        density = density * (10 ** 11); // 너무 작은 값이라서 자릿수 늘리기
-        return { latitude, longitude, density };
+    let startLat = 35.1188093910081;
+    let startLng = 128.96808496718;
+    let factory = {
+      latitude : 35.1188093910081,
+      longitude : 128.96808496718,
+      SOx : 100,
+      PM10 : 50,
+      NOx : 150
+    };
+    let particle_type = 'SOx';
+    let wind = {
+      direction : 350,
+      speed : 3.5
+    };
+    // 맵과 히트맵 레이어 초기화
+    var map = L.map('map', {
+        center: [startLat, startLng],
+        zoom: 14,
     });
-  }
 
-  // 히트맵 데이터 생성
-  let densityData = generateDensityData(pointList);
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+    }).addTo(map);
 
-  // 최대값과 최소값 계산
-  let maxDensity = Math.max(...densityData.map(d => d.density));
-  let minDensity = Math.min(...densityData.map(d => d.density));
-  const range = maxDensity - minDensity;
-
-  // 데이터 스케일링 및 Q 값을 고려하여 조정
-  densityData = densityData.map(d => {
-      // x1 = (d.density - minDensity) -> 0~range 값으로 정규화
-      let x1 = d.density - minDensity;
-      // x2 = x1 / range -> 0 ~ 1 범위 내 값으로 정규화
-      let x2 = x1 / range;
-      // x3 = x2 * (Q / maxQ) -> 실제 배출량 비율을 포함한 값으로 정규화
-      let x3 = x2 * (Q / maxQ);
-      let normalizedDensity = x3;
-      // 완전히 0이 되면 이상하게 최대 색상값으로 히트맵이 인식 하는듯, 그래서 0인 값은 아주 작은 값으로 보정
-      if(d.density - minDensity === 0) normalizedDensity = 0.000001; 
-      return { ...d, density: normalizedDensity };
-  });
-  console.log(densityData)
-
-  // 히트맵 설정 객체
-  var cfg = {
-      min : 0,
-      max : 1,
-      radius: 50,
-      maxOpacity: 0.5,
-      scaleRadius: false,
-      useLocalExtrema: false,
-      latField: 'latitude',
-      lngField: 'longitude',
-      valueField: 'density',
-      // 0~1까지 각 비율에 어떤 색상을 할당할 지 결정
-      gradient: {
-        0.0: 'blue',
-        0.2: 'cyan',
-        0.4: 'lime',
-        0.6: 'yellow',
-        0.8: 'orange',
-        1.0: 'red',
-      }
-  };
-
-  // 히트맵 레이어 생성(map에 추가)
-  var heatmapLayer = new HeatmapOverlay(cfg).addTo(map);
-
-  var testData = {
-      min : 0,
-      max: 1, // 데이터의 최대값을 1로 설정
-      data: densityData
-  };
-
-  // 히트맵 데이터 설정
-  heatmapLayer.setData(testData);
-  console.log(testData);
-
-  // 풍향에 따라 선을 그리자.. 그리고 그 선
-  heatmapLayer.setData(testData); 
+    // 하나의 공장에서 나오는 매연을 히트맵으로 표현
+    map = addSmokeHeatmap_single(map, factory, particle_type, wind);
 
 </script>
 </body>
