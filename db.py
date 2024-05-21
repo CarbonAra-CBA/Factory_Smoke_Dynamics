@@ -269,6 +269,67 @@ def update_factory_data():
 
         return existing_data
 
+    def linear(factory_list):
+        # JSON 데이터를 함수 내부에서 불러옵니다.
+        with open('final_data.json', 'r', encoding='utf-8') as file:
+            data = json.load(file)
+
+        output_data = {city: [] for city in data.keys()}
+
+        for factory_name in factory_list:
+            time_series = {
+                'Time': [],
+                'SOX': []
+            }
+
+            original_records = []
+            for city, records in data.items():
+                for record in records:
+                    if record['fact_manage_nm'] == factory_name:
+
+                        if record['time'] not in time_series['Time']:
+                            time_series['Time'].append(record['time'])
+                            time_series['SOX'].append(record['SOX'])
+                            original_records.append(record)
+
+            if len(time_series['Time']) <= 1:
+                continue
+
+            df = pd.DataFrame(time_series)
+            df['Time'] = pd.to_datetime(df['Time'])
+
+            df.drop_duplicates(subset='Time', keep='first', inplace=True)
+            df.sort_values('Time', inplace=True)
+            df.set_index('Time', inplace=True)
+
+            # 30분 단위로 리샘플링하고 선형 보간을 수행합니다.
+            df_interpolated = df.resample('30T').interpolate()
+
+            for time, row in df_interpolated.iterrows():
+                # 기존 레코드에서 해당 시간의 데이터를 찾습니다.
+                new_record = next((record for record in original_records if record['time'] == time.strftime('%H:%M')),
+                                  None)
+
+                if not new_record:
+                    # 새로운 기록을 만듭니다.
+                    new_record = {'fact_manage_nm': factory_name, 'time': time.strftime('%H:%M'), 'SOX': row['SOX']}
+                    # 원본 레코드에서 복사할 수 있는 다른 필드를 추가합니다.
+                    for key in original_records[0]:
+                        if key not in new_record:
+                            new_record[key] = original_records[0][key]
+                else:
+                    new_record['SOX'] = row['SOX']
+
+                for city, records in data.items():
+                    if any(rec['fact_manage_nm'] == factory_name for rec in records):
+                        output_data[city].append(new_record)
+                        break
+
+        with open('output.json', 'w', encoding='utf-8') as outfile:
+            json.dump(output_data, outfile, ensure_ascii=False, indent=4)
+
+        return output_data
+
     fact_data1 = factadressCall('울산')
     fact_data2 = factadressCall('대전')
 
@@ -285,6 +346,7 @@ def update_factory_data():
     data = first_data(fact_data1, fact_data2)
 
     final_data = wind_data_injection(data)
+    linear(factory_list)
     print(final_data)
 
 update_factory_data()
