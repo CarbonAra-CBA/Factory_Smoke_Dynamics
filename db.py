@@ -132,7 +132,7 @@ def update_factory_data():
                         "SOX": item2['sox_mesure_value'],
                         "x_coord": item['x_coord'],
                         "y_coord": item['y_coord'],
-                        "time": time,
+                        "time": mesure_dt.strftime('%Y-%m-%d %H:%M'),
                     }
                     middle_data['울산광역시'].append(new_data)
 
@@ -159,7 +159,7 @@ def update_factory_data():
                         "SOX": item2['sox_mesure_value'],
                         "x_coord": item['x_coord'],
                         "y_coord": item['y_coord'],
-                        "time": time,
+                        "time": mesure_dt.strftime('%Y-%m-%d %H:%M'),
                     }
                     middle_data['대전광역시'].append(new_data)
 
@@ -270,8 +270,7 @@ def update_factory_data():
         return existing_data
 
     def linear(factory_list):
-        # JSON 데이터를 함수 내부에서 불러옵니다.
-        with open('final_data.json', 'r', encoding='utf-8') as file:
+        with open('finally_data.json', 'r', encoding='utf-8') as file:
             data = json.load(file)
 
         output_data = {city: [] for city in data.keys()}
@@ -286,9 +285,9 @@ def update_factory_data():
             for city, records in data.items():
                 for record in records:
                     if record['fact_manage_nm'] == factory_name:
-
-                        if record['time'] not in time_series['Time']:
-                            time_series['Time'].append(record['time'])
+                        full_time = datetime.strptime(record['time'], '%Y-%m-%d %H:%M')
+                        if full_time not in time_series['Time']:
+                            time_series['Time'].append(full_time)
                             time_series['SOX'].append(record['SOX'])
                             original_records.append(record)
 
@@ -296,24 +295,26 @@ def update_factory_data():
                 continue
 
             df = pd.DataFrame(time_series)
-            df['Time'] = pd.to_datetime(df['Time'])
 
             df.drop_duplicates(subset='Time', keep='first', inplace=True)
             df.sort_values('Time', inplace=True)
             df.set_index('Time', inplace=True)
 
-            # 30분 단위로 리샘플링하고 선형 보간을 수행합니다.
             df_interpolated = df.resample('30T').interpolate()
 
             for time, row in df_interpolated.iterrows():
-                # 기존 레코드에서 해당 시간의 데이터를 찾습니다.
-                new_record = next((record for record in original_records if record['time'] == time.strftime('%H:%M')),
-                                  None)
+
+                new_record = next(
+                    (record for record in original_records if record['time'] == time.strftime('%Y-%m-%d %H:%M')), None)
 
                 if not new_record:
-                    # 새로운 기록을 만듭니다.
-                    new_record = {'fact_manage_nm': factory_name, 'time': time.strftime('%H:%M'), 'SOX': row['SOX']}
-                    # 원본 레코드에서 복사할 수 있는 다른 필드를 추가합니다.
+
+                    new_record = {
+                        'fact_manage_nm': factory_name,
+                        'time': time.strftime('%Y-%m-%d %H:%M'),
+                        'SOX': row['SOX']
+                    }
+
                     for key in original_records[0]:
                         if key not in new_record:
                             new_record[key] = original_records[0][key]
