@@ -21,38 +21,65 @@
 
 <div id="map"></div>
 
-V
-<!-- <script src="../fill_hex.js"></script>
-<script src="../gaussian.js"></script> -->
-<script src="../heatmap_smoke.js"></script>
+<!--<script src="../fill_hex.js"></script>-->
+
+<!--<script src="../static/gaussian.js"></script>-->
+<!--<script src="../static/heatmap_smoke.js"></script>-->
+<script src="{{ url_for('static', filename='gaussian.js') }}"></script>
+<script src="{{ url_for('static', filename='heatmap_smoke.js') }}"></script>
 <script>
-    let startLat = 35.1188093910081;
-    let startLng = 128.96808496718;
-    let factory = {
-      latitude : 35.1188093910081,
-      longitude : 128.96808496718,
-      SOx : 100,
-      PM10 : 50,
-      NOx : 150
-    };
-    let particle_type = 'SOx';
-    let wind = {
-      direction : 350,
-      speed : 3.5
-    };
-    // 맵과 히트맵 레이어 초기화
-    var map = L.map('map', {
-        center: [startLat, startLng],
-        zoom: 14,
-    });
+  let startLat = 35.492082387322;
+  let startLng = 129.327187114242;
+  let factory = {
+    latitude : 35.492082387322,
+    longitude : 129.327187114242,
+    SOx : 100,
+    PM10 : 50,
+    NOx : 150
+  };
+  let particle_type = 'SOx';
+  let wind = {
+    direction : 350,
+    speed : 3.5
+  };
 
-    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 19,
-        attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-    }).addTo(map);
+  // 맵과 히트맵 레이어 초기화
+  var map = L.map('map', {
+    center: [startLat, startLng],
+    zoom: 14,
+  });
 
-    // 하나의 공장에서 나오는 매연을 히트맵으로 표현
-    map = addSmokeHeatmap_single(map, factory, particle_type, wind);
+  // 타일 설정 ( OSM )
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+  }).addTo(map);
+
+  /* 울산 Geojson 파일 업로드  */
+  fetch('{{ url_for('static', filename='ulsan_building_geo.geojson') }}')
+  .then(response => response.json())
+          .then(data => {
+            console.log("GeoJSON data:", data);  // GeoJSON 데이터 출력
+            var geojsonLayer = L.geoJSON(data, {
+              style: function (feature) {
+                return {
+                  color: "#fc780d",
+                  weight: 2,
+                  opacity: 1
+                };
+              }
+            });
+            console.log("GeoJSON Layer:", geojsonLayer);  // GeoJSON 레이어 출력
+            geojsonLayer.addTo(map);  // GeoJSON 레이어를 지도에 추가
+          })
+          .catch(error => console.log('Error loading GeoJSON:', error));
+
+  // // 하나의 공장에서 나오는 매연을 히트맵으로 표현
+  if (typeof addSmokeHeatmap_single === 'function') {
+    addSmokeHeatmap_single(map, factory, particle_type, wind); //
+  } else {
+    console.error("addSmokeHeatmap_single 함수가 정의되지 않았습니다.");
+  }
 
 </script>
 </body>

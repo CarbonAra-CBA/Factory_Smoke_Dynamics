@@ -256,7 +256,7 @@ def update_factory_data():
                 future.result()
 
         try:
-            with open('final_data.json', "r", encoding='utf-8') as json_file:
+            with open('finally_data.json', "r", encoding='utf-8') as json_file:
                 existing_data = json.load(json_file)
         except FileNotFoundError:
             existing_data = {"울산광역시": [], "대전광역시": []}
