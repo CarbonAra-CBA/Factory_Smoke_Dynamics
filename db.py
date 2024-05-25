@@ -270,7 +270,7 @@ def update_factory_data():
         return existing_data
 
     def linear(factory_list):
-        with open('finally_data.json', 'r', encoding='utf-8') as file:
+        with open('final_data.json', 'r', encoding='utf-8') as file:
             data = json.load(file)
 
         output_data = {city: [] for city in data.keys()}
@@ -344,10 +344,10 @@ def update_factory_data():
 
     fact_data1 = factCall('울산')
     fact_data2 = factCall('대전')
-    data = first_data(fact_data1, fact_data2)
+    data = first_data(fact_data1, fact_data2) # 여기서 finally_data 리턴
 
-    final_data = wind_data_injection(data)
-    linear(factory_list)
+    final_data = wind_data_injection(data) # 여기서 final_data.json 생성
+    linear(factory_list) # 여기서 생성된 final_data.json을 보간 후 output.json파일 최종 생성
     print(final_data)
 
 update_factory_data()
