@@ -14,17 +14,57 @@
   <script src="https://unpkg.com/leaflet-geometryutil@0.13.1/leaflet.geometryutil.min.js"></script>
 
   <style>
+    #header {
+      height: 80px;
+    }
+    #body {
+      display: flex;
+      flex-direction: row;
+    }
+    #chart {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        grid-template-rows: repeat(2, 1fr);
+        gap: 10px; /* Optional: space between grid items */
+        width: 25%; /* Adjust as needed */
+        height: 50%; /* Adjust as needed */
+        padding-left: 50px;
+        padding-right: 12px;
+        padding-top: 50px;
+    }
+
+    .grid-item {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-color: #cccccc;
+        border: 1px solid #000;
+        font-size: 2em;
+    }
+    
     #map { width: 900px; height: 800px; }
   </style>
 </head>
 <body>
+<div id="header">
+  <p style="font-size: 40px; margin: 10px">CarbonAra Factory Monitoring</p>
+</div>
+<div id="body">
+  <div id="map"></div>
+  <div id="chart">
+    <canvas class="grid-item" id="time_smokeRealse"></canvas>
+    <canvas class="grid-item" id="today_emission"></canvas>
+    <canvas class="grid-item" id="time_citySmoke"></canvas>
+    <canvas class="grid-item" id="day_cost"></canvas>
+  </div>
+</div>
 
-<div id="map"></div>
 
 <!--<script src="../fill_hex.js"></script>-->
 
 <!--<script src="../static/gaussian.js"></script>-->
-<!--<script src="../static/heatmap_smoke.js"></script>-->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="../static/heatmap_smoke.js"></script>
 <script src="{{ url_for('static', filename='gaussian.js') }}"></script>
 <script src="{{ url_for('static', filename='heatmap_smoke.js') }}"></script>
 <script>
@@ -39,7 +79,7 @@
   };
   let particle_type = 'SOx';
   let wind = {
-    direction : 350,
+    direction : 170,
     speed : 3.5
   };
 
@@ -47,6 +87,7 @@
   var map = L.map('map', {
     center: [startLat, startLng],
     zoom: 14,
+    zoomControl: false
   });
 
   // 타일 설정 ( OSM )
@@ -56,7 +97,7 @@
   }).addTo(map);
 
   /* 울산 Geojson 파일 업로드  */
-  fetch('{{ url_for('static', filename='ulsan_building_geo.geojson') }}')
+  fetch("{{ url_for('static', filename='ulsan_building_geo.geojson') }}")
   .then(response => response.json())
           .then(data => {
             console.log("GeoJSON data:", data);  // GeoJSON 데이터 출력
@@ -76,10 +117,116 @@
 
   // // 하나의 공장에서 나오는 매연을 히트맵으로 표현
   if (typeof addSmokeHeatmap_single === 'function') {
+    // 세진 : 공장의 굴뚝 위치에 마커를 표시하고 팝업 창을 띄우기
+    let marker = L.marker([factory.latitude, factory.longitude]).addTo(map);
+    marker.bindPopup("<b>회사명 : ㈜한주</b><br>주소 : 울산광역시 남구 사평로 60 (부곡동)").openPopup();
+    // 히트맵 그리기
     addSmokeHeatmap_single(map, factory, particle_type, wind); //
   } else {
     console.error("addSmokeHeatmap_single 함수가 정의되지 않았습니다.");
   }
+
+  // 해당 공장에서 나오는 매연의 양과 벌금의 수준을 차트로 표현
+  const time_smokeRealse = document.getElementById('time_smokeRealse');
+  // 임의의 데이터 생성
+  let smokeRealse = [];
+  for(let i = 0; i < 56; i++) {
+    smokeRealse.push(Math.floor(Math.random() * 301));
+  }
+  let day_list = [];
+  for(let i = 20; i < 27; i++) {
+    for(let j = 9; j <= 16; j++) {
+      day_list.push(`5/${i} ${j}:00`);
+    }
+  }
+  // 시간 대비 오염물질 배출량(SOX 기준)
+  new Chart(time_smokeRealse, {
+    type: 'bar',
+    data: {
+      // 17개 라밸
+      labels: day_list,
+      datasets: [{
+        label: '# 시간당 SOX 배출량(g/s)',
+        data: smokeRealse,
+        borderWidth: 0.5
+      }]
+    },
+    options: {
+      scales: {
+        y: {
+          beginAtZero: true
+        }
+      }
+    }
+  });
+
+  for(let i = 0; i < 56; i++) {
+    smokeRealse[i] = smokeRealse[i] * (Math.floor(Math.random() * 101)) / 100;
+    smokeRealse[i] = parseFloat(smokeRealse[i].toFixed(2));
+  }
+  // 시간 대비 오염물질이 주거지에 포함된 양
+  new Chart(time_citySmoke, {
+    type: 'bar',
+    data: {
+      // 17개 라밸
+      labels: day_list,
+      datasets: [{
+        label: '# 시간당 거주지 상공에 확산된 SOX 배출량(g/s)',
+        data: smokeRealse,
+        borderWidth: 0.5
+      }]
+    },
+    options: {
+      scales: {
+        y: {
+          beginAtZero: true
+        }
+      }
+    }
+  });
+  // 시간 대비 벌금
+  let cost = [];
+  for(let i = 0; i < 7; i++) {
+    cost.push(Math.floor(Math.random() * 400) + 100);
+  }
+  new Chart(day_cost, {
+    type: 'line',
+    data: {
+      // 17개 라밸
+      labels: ['5/20', '5/21', '5/22', '5/23', '5/24', '5/25', '5/26'],
+      datasets: [{
+        label: '# 벌금액(천원)',
+        data: cost,
+        borderWidth: 0.5
+      }]
+    },
+    options: {
+      scales: {
+        y: {
+          beginAtZero: true
+        }
+      }
+    }
+  });
+
+  new Chart(today_emission, {
+    type: 'doughnut',
+    data: {
+      labels: ['먼지', '황산화물', '질소산화물', '염화수소', '불화수소', '암모니아', '일산화탄소'],
+      datasets: [{
+        label: '# 오염물질 배출량',
+        data: [10, 50, 30, 5, 3, 3, 70, 100],
+        borderWidth: 0.5
+      }]
+    },
+    options: {
+      scales: {
+        y: {
+          beginAtZero: true
+        }
+      }
+    }
+  });
 
 </script>
 </body>
