@@ -1,110 +1,156 @@
-<!doctype html>
-<html lang="">
+<!DOCTYPE html>
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport"
-          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-          integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
-          crossorigin=""/>
-    <!-- Make sure you put this AFTER Leaflet's CSS -->
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-            integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
-            crossorigin=""></script>
-    <script src="https://unpkg.com/leaflet-geometryutil"></script>
-    <script src="https://unpkg.com/leaflet-ellipse"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-polylinedecorator/1.1.0/leaflet.polylineDecorator.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pollution Monitor</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.2.0/dist/leaflet.css"/>
+    <script src="https://unpkg.com/leaflet@1.2.0/dist/leaflet.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/heatmap.js/2.0.2/heatmap.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/leaflet-heatmap@1.0.0/leaflet-heatmap.min.js"></script>
+    <script src="https://unpkg.com/leaflet-geometryutil@0.13.1/leaflet.geometryutil.min.js"></script>
 
-    <title>Document</title>
-    <style>
-        #map { height: 800px; }
-    </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="../static/heatmap_smoke.js"></script>
+    <script src="{{ url_for('static', filename='gaussian.js') }}"></script>
+    <script src="{{ url_for('static', filename='heatmap_smoke.js') }}"></script>
 </head>
-
 <body>
+<div class="grid-container">
+    <div class="sidebar">
+        <div class="header">
+            <svg class="filter-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+            </svg>
+            <h1></h1>
+        </div>
+        <div class="accordion">
+            <div class="accordion-item">
+                <div class="accordion-trigger">Location</div>
+                <div class="accordion-content">
+                    <label><input type="checkbox" id="location-city1"> City 1</label>
+                    <label><input type="checkbox" id="location-city2"> City 2</label>
+                    <label><input type="checkbox" id="location-city3"> City 3</label>
+                </div>
+            </div>
+            <div class="accordion-item">
+                <div class="accordion-trigger">Time</div>
+                <div class="accordion-content">
+                    <label><input type="checkbox" id="time-today"> Today</label>
+                    <label><input type="checkbox" id="time-week"> Last 7 days</label>
+                    <label><input type="checkbox" id="time-month"> Last 30 days</label>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="main-content">
+        <header>
+            <h2>Factory Dynamic Dashboard</h2>
+            <div class="dropdown">
+                <button class="dropdown-trigger">
+                    <svg class="filter-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                    </svg>
+                </button>
+                <div class="dropdown-content">
+                    <label><input type="checkbox" id="filter-pm25"> sox</label>
+                    <label><input type="checkbox" id="filter-pm10"> pox</label>
+                    <label><input type="checkbox" id="filter-co2"> co2</label>
+                </div>
+            </div>
+        </header>
+        <div class="dashboard">
+            <div class="cards">
+                <div class="card">
+                    <div class="card-header">
+                        <h3>SOX</h3>
+                        <svg class="filter-icon text-red-500" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                        </svg>
+                    </div>
+                    <div class="card-content">
+                        <div class="value">45 μg/m³</div>
+                        <p>Exceeding safe levels</p>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Good Index</h3>
+                        <svg class="filter-icon text-orange-500" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                        </svg>
+                    </div>
+                    <div class="card-content">
+                        <div class="value">65</div>
+                        <p>Moderate levels</p>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header">
+                        <h3>harm to citizens</h3>
+                        <svg class="filter-icon text-yellow-500" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                        </svg>
+                    </div>
+<!--                    <div class="card-content">-->
+<!--                        <div class="value">450 ppm</div>-->
+<!--                        <p>Elevated levels</p>-->
+<!--                    </div>-->
+                    <div class="card-header">
+                        <h3></h3>
+                        <div class="value text-red-500">156 </div>
+                        <p>
+                        </p>
+                        <div class="progress-bar">
+                            <div class="progress" style="width: 78%;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="charts">
+                <div class="card">
+<!--                    <div class="card-header">-->
+<!--                        <h3></h3>-->
+<!--                        <div class="value text-red-500">156 </div>-->
+<!--                        <p> Unhealthy for sensitive groups</p>-->
+<!--                        <div class="progress-bar">-->
+<!--                            <div class="progress" style="width: 78%;"></div>-->
+<!--                        </div>-->
+<!--                    </div>-->
+                    <div class="card-content">
+                        </div>
+                    </div>
+                </div>
+                <div class="card-chart">
+                    <div class="card-header">
+                        <div id="map" class="chart">
+                    </div>
+                    <div class="card-content">
 
-<!-- 위치 선정 -->
-<div id="map"></div>
-
-<!-- 공장 선택 -->
-
+                    </div>
+                </div>
+<!--                <div class="card">-->
+<!--                    <div class="card-header">-->
+<!--                        <h3>Trends</h3>-->
+<!--                    </div>-->
+<!--                    <div class="card-content">-->
+<!--&lt;!&ndash;                        <div id="linechart" class="chart"></div>&ndash;&gt;-->
+<!--                    </div>-->
+<!--                </div>-->
+                    <div class="card-chart">
+                        <div class="card-header">
+<!--                            <h3></h3>-->
+                            <div id="chart">
+                                <canvas class="grid-item" id="time_citySmoke"></canvas>
+                                <canvas class="grid-item" id="time_smokeRealse"></canvas>
+                            </div>
+<!--                            <div class="card-content"></div>-->
+                        </div>
+                    </div>
+        </div>
+    </div>
+</div>
+<script src="script.js"></script>
 </body>
-
-<script>
-    var map = L.map('map').setView([35.434807884,129.349306610], 13);           // (x, y ,zoom) // 현재 울산광역시 울주군 온산읍 산암로 148 ( GEO Coding API로 변경해서 X,Y 전송받기 가능 )
-
-    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {             // 표준 타일 레이어 (? : 그냥 지도 종류라고 보면된다. 지도 종류는 바꾸기 가능)
-        maxZoom: 19,
-        attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-    }).addTo(map);
-
-    // Function to create hexagon coordinates
-    function createHexagon(center, radius) {
-        var latlngs = [];
-        for (let i = 0; i < 6; i++) {
-            // Calculate angle for each vertex
-            let angle = 2 * Math.PI / 6 * i;
-            let lat = center[0] + radius * Math.cos(angle);
-            let lng = center[1] + radius * Math.sin(angle);
-            latlngs.push([lat, lng]);
-        }
-        return latlngs;
-    }
-
-    // Create hexagon coordinates around the central point
-    var hexagonCenter = [35.434807884,129.349306610];  // Set the central point for the hexagon
-    var hexagonRadius = 0.01;  // Set the radius (in degrees, adjust based on your scale)
-    var hexagonCoordinates = createHexagon(hexagonCenter, hexagonRadius);
-
-    // Create and add the hexagon polygon to the map
-    var hexagon = L.polygon(hexagonCoordinates, {color: 'red'}).addTo(map);
-
-    // Zoom the map to the hexagon
-    map.fitBounds(hexagon.getBounds());
-
-    // 풍속을 받았다.
-
-    L.Hex = L.Polygon.extend({
-        initialize: function (args) {
-            console.log('arguments', JSON.stringify(arguments));
-            console.log('arguments[0]', JSON.stringify(arguments[0]));
-
-            // options = options || {};
-
-            this.center  = args[0];
-            this.size    = args[1];
-            this.options = args[2] || {};
-
-            L.Polygon.prototype.initialize.call(this, [], this.options);
-        },
-
-        points: function(center, size, map){
-            var latlngs = [0, 1, 2, 3, 4, 5, 6]
-                .map(p => this.hexCorner(center, size, p))
-                .map(p => map.layerPointToLatLng(p));
-            return latlngs;
-        },
-
-        hexCorner: function(center, size, i){
-            var angle_deg = 60 * i - 30;
-            var angle_rad = Math.PI / 180 * angle_deg;
-
-            return [center[0] + size * Math.cos(angle_rad),
-                center[1] + size * Math.sin(angle_rad)]
-        },
-    })
-
-    L.hex = function(){ return new L.Hex(arguments) }
-
-
-    // wind를 10 m/s 가정, 풍향 남쪽으로 가정
-    var wind_power = 10;
-    var wind_direction = 170; // 남쪽
-    var time = 30 // 30분간 측정한 값들의 평균
-
-    var distance = wind_power * time;
-
-
-</script>
 </html>

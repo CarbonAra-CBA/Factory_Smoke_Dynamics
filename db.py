@@ -180,6 +180,7 @@ def update_factory_data():
             json.dump(finally_data, json_file, ensure_ascii=False)
         return finally_data
 
+    # 현재 시간
     def wind_current(stn):
         col_name = ["KST", "STN", "WD1", "WS1", "WDS", "WSS", "WD10", "WS10", "TA", "RE", "RN-15m", "RN-60m", "RN-12H", "RN-DAY", "HM", "PA", "PS", "TD"]
         headers = {'Content-Type': 'application/json'}
@@ -255,26 +256,20 @@ def update_factory_data():
             for future in as_completed(futures):
                 future.result()
 
-        try:
-            with open('finally_data.json', "r", encoding='utf-8') as json_file:
-                existing_data = json.load(json_file)
-        except FileNotFoundError:
-            existing_data = {"울산광역시": [], "대전광역시": []}
+         # 기존 데이터를 덮어쓰지 않고 새로운 데이터만 저장
+        with open('finally_data.json', "w", encoding='utf-8') as json_file:
+            json.dump(data, json_file, ensure_ascii=False)
 
-        existing_data['울산광역시'].extend(data['울산광역시'])
-        existing_data['대전광역시'].extend(data['대전광역시'])
-
-        with open('final_data.json', "w", encoding='utf-8') as json_file:
-            json.dump(existing_data, json_file, ensure_ascii=False)
-
-        return existing_data
+        return data
 
     def linear(factory_list):
-        with open('final_data.json', 'r', encoding='utf-8') as file:
+        # Step 1: Load data from 'finally_data.json'
+        with open('finally_data.json', 'r', encoding='utf-8') as file:
             data = json.load(file)
-
+        # Initialize output data structure
         output_data = {city: [] for city in data.keys()}
 
+        # Step 2: Create time series and interpolate
         for factory_name in factory_list:
             time_series = {
                 'Time': [],
@@ -294,14 +289,14 @@ def update_factory_data():
             if len(time_series['Time']) <= 1:
                 continue
 
+            # Step 3: Interpolate time series
             df = pd.DataFrame(time_series)
-
             df.drop_duplicates(subset='Time', keep='first', inplace=True)
             df.sort_values('Time', inplace=True)
             df.set_index('Time', inplace=True)
 
             df_interpolated = df.resample('30T').interpolate()
-
+            # Step 4: Create or update records based on interpolated data
             for time, row in df_interpolated.iterrows():
 
                 new_record = next(
@@ -325,7 +320,7 @@ def update_factory_data():
                     if any(rec['fact_manage_nm'] == factory_name for rec in records):
                         output_data[city].append(new_record)
                         break
-
+        # Step 5: Save results to 'output.json'
         with open('output.json', 'w', encoding='utf-8') as outfile:
             json.dump(output_data, outfile, ensure_ascii=False, indent=4)
 
@@ -344,10 +339,12 @@ def update_factory_data():
 
     fact_data1 = factCall('울산')
     fact_data2 = factCall('대전')
-    data = first_data(fact_data1, fact_data2) # 여기서 finally_data 리턴
+    data = first_data(fact_data1, fact_data2)
 
-    final_data = wind_data_injection(data) # 여기서 final_data.json 생성
-    linear(factory_list) # 여기서 생성된 final_data.json을 보간 후 output.json파일 최종 생성
-    print(final_data)
+    final_data = wind_data_injection(data)
+    linear_data=linear(factory_list)
+    print("now_final_data", final_data)  # 현재 시간 최종데이터.
+    print("linearData: ", linear_data)
 
 update_factory_data()
+

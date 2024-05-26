@@ -1,0 +1,218 @@
+:root {
+    --radius: 0.625rem;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    margin: 0;
+}
+
+.grid-container {
+    display: grid;
+    grid-template-columns: 83px 1fr;
+    height: 100vh;
+    width: 100vw;
+}
+
+.sidebar {
+    background-color: #1f2937;
+    color: white;
+    padding: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.header {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+
+}
+
+.filter-icon {
+    width: 1.5rem;
+    height: 1.5rem;
+}
+
+h1 {
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+.accordion {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.accordion-item {
+    background-color: #374151;
+    border-radius: var(--radius);
+}
+
+.accordion-trigger {
+    text-align: center;
+    cursor: pointer;
+}
+
+.accordion-content {
+    padding: 0.75rem 1rem;
+    display: none;
+}
+
+.accordion-content label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.main-content {
+    display: flex;
+    flex-direction: column;
+}
+
+header {
+    background-color: white;
+    border-bottom: 1px solid #e5e7eb;
+    padding: 0rem 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+header h2 {
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+.dropdown {
+    position: relative;
+}
+
+.dropdown-trigger {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: none;
+    border: 1px solid #d1d5db;
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius);
+    cursor: pointer;
+}
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    right: 0;
+    background-color: white;
+    border: 1px solid #e5e7eb;
+    border-radius: var(--radius);
+    padding: 1rem;
+    width: 14rem;
+}
+
+.dropdown-content label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.dashboard {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 1.5rem;
+    padding: 1.5rem;
+    flex: 1;
+}
+
+.cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+}
+
+.card {
+    background-color: white;
+    border: 1px solid #e5e7eb;
+    border-radius: var(--radius);
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    /*gap: 0.75rem;*/
+}
+.card-chart {
+    background-color: white;
+    border: 1px solid #e5e7eb;
+    border-radius: var(--radius);
+    padding: 1rem;
+    display: flex;
+    gap: 0.75rem;
+}
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.card-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.value {
+    font-size: 2rem;
+    font-weight: bold;
+}
+
+.text-red-500 {
+    color: #e11d48;
+}
+
+.text-orange-500 {
+    color: #ea580c;
+}
+
+.text-yellow-500 {
+    color: #f59e0b;
+}
+
+.progress-bar {
+    width: 80%;
+    background-color: #f3f4f6;
+    border-radius: var(--radius);
+    overflow: hidden;
+}
+
+.progress {
+    height: 0.75rem;
+    background-color: #e11d48;
+}
+
+.chart {
+    height: 200px;
+}
+
+#map { width: 600px; height:600px;
+    border-radius: 15px; /* 둥근 모서리를 만듭니다 */
+    overflow: hidden; /* 둥근 모서리가 잘리도록 합니다 */
+}
+
+#chart {
+    display: flex;
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+    gap: 17px; /* Optional: space between grid items */
+    width: 46%; /* Adjust as needed */
+    height: 54%; /* Adjust as needed */
+    padding-left: 58px;
+    padding-right: 14px;
+    padding-top: 50px;
+}
+
+.grid-item {
+}
