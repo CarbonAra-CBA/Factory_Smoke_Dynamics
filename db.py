@@ -345,6 +345,8 @@ def update_factory_data():
     linear_data=linear(factory_list)
     print("now_final_data", final_data)  # 현재 시간 최종데이터.
     print("linearData: ", linear_data)
+    # database
 
 update_factory_data()
+
 
