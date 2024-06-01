@@ -4,7 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pollution Monitor</title>
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="../static/styles.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.2.0/dist/leaflet.css"/>
     <script src="https://unpkg.com/leaflet@1.2.0/dist/leaflet.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/heatmap.js/2.0.2/heatmap.js"></script>
@@ -15,19 +17,22 @@
     <script src="../static/heatmap_smoke.js"></script>
     <script src="{{ url_for('static', filename='gaussian.js') }}"></script>
     <script src="{{ url_for('static', filename='heatmap_smoke.js') }}"></script>
+    <script>
+        var geojsonUrl = "{{ url_for('static', filename='ulsan_building_geo.geojson') }}";
+    </script>
 </head>
 <body>
 <div class="grid-container">
     <div class="sidebar">
         <div class="header">
-            <svg class="filter-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
-            </svg>
-            <h1></h1>
+<!--            <svg class="filter-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">-->
+<!--                <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>-->
+<!--            </svg>-->
+            <h1>BlueSky</h1>
         </div>
         <div class="accordion">
             <div class="accordion-item">
-                <div class="accordion-trigger">Location</div>
+                <div class="accordion-trigger">대시보드</div>
                 <div class="accordion-content">
                     <label><input type="checkbox" id="location-city1"> City 1</label>
                     <label><input type="checkbox" id="location-city2"> City 2</label>
@@ -35,24 +40,34 @@
                 </div>
             </div>
             <div class="accordion-item">
-                <div class="accordion-trigger">Time</div>
+                <div class="accordion-trigger">월별 분석</div>
                 <div class="accordion-content">
-                    <label><input type="checkbox" id="time-today"> Today</label>
-                    <label><input type="checkbox" id="time-week"> Last 7 days</label>
-                    <label><input type="checkbox" id="time-month"> Last 30 days</label>
+
+                </div>
+            </div>
+            <div class="accordion-item">
+                <div class="accordion-trigger">분석모델 설정</div>
+                <div class="accordion-content">
+
+                </div>
+            </div>
+            <div class="accordion-item">
+                <div class="accordion-trigger">공장 알림 설정</div>
+                <div class="accordion-content">
+
                 </div>
             </div>
         </div>
     </div>
     <div class="main-content">
         <header>
-            <h2>Factory Dynamic Dashboard</h2>
+            <h2>블루 스카이 울산 2 공장주 대시보드</h2>
             <div class="dropdown">
-                <button class="dropdown-trigger">
-                    <svg class="filter-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
-                    </svg>
-                </button>
+<!--                <button class="dropdown-trigger">-->
+<!--                    <svg class="filter-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">-->
+<!--                        <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>-->
+<!--                    </svg>-->
+<!--                </button>-->
                 <div class="dropdown-content">
                     <label><input type="checkbox" id="filter-pm25"> sox</label>
                     <label><input type="checkbox" id="filter-pm10"> pox</label>
@@ -64,31 +79,36 @@
             <div class="cards">
                 <div class="card">
                     <div class="card-header">
-                        <h3>SOX</h3>
+                        <h3>SOX 배출량</h3>
                         <svg class="filter-icon text-red-500" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
                         </svg>
                     </div>
                     <div class="card-content">
                         <div class="value">45 μg/m³</div>
-                        <p>Exceeding safe levels</p>
+                        <div></div>
+                        <h3>절적한 수준입니다.</h3>
+                        <div>최근 1시간 동안의 SOX 배출량입니다.</div>
                     </div>
                 </div>
                 <div class="card">
                     <div class="card-header">
-                        <h3>Good Index</h3>
+                        <h3>주거지 피해지수 (RII) (0~100)</h3>
                         <svg class="filter-icon text-orange-500" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
                         </svg>
                     </div>
                     <div class="card-content">
-                        <div class="value">65</div>
-                        <p>Moderate levels</p>
+                        <div class="value">75</div>
+                        <h3>높은 수준입니다.</h3>
+                        <div>RII = (N x N + C x A)</div>
+                        <div class="specific">P: 오염물질의 주거지 도달 비율 , M: 1인당 평균의료비 , N: 주거지 주민수</div>
+                        <div class="specific">C: 건물 부식으로 인한 유지보수 비용, A: 주거지 내 건물의 총면적</div>
                     </div>
                 </div>
                 <div class="card">
                     <div class="card-header">
-                        <h3>harm to citizens</h3>
+                        <h3>벌금 지수 F (0~100)</h3>
                         <svg class="filter-icon text-yellow-500" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
                         </svg>
@@ -98,18 +118,20 @@
 <!--                        <p>Elevated levels</p>-->
 <!--                    </div>-->
                     <div class="card-header">
-                        <h3></h3>
-                        <div class="value text-red-500">156 </div>
-                        <p>
-                        </p>
-                        <div class="progress-bar">
-                            <div class="progress" style="width: 78%;"></div>
-                        </div>
+<!--                        <div class="progress-bar">-->
+<!--                            <div class="progress" style="width: 78%;"></div>-->
+<!--                        </div>-->
+                    </div>
+                    <div class="card-content">
+                    <div class="value">55</div>
+                    <h3>적절한 수준입니다.</h3>
+                    <div>F = F0 x (1+k x RII)</div>
+                    <div class="specific">F0: 기준 벌금액, K: 벌금 계수</div>
+                    <div class="specific">RII: 주거지 피해지수</div>
                     </div>
                 </div>
             </div>
             <div class="charts">
-                <div class="card">
 <!--                    <div class="card-header">-->
 <!--                        <h3></h3>-->
 <!--                        <div class="value text-red-500">156 </div>-->
@@ -118,9 +140,6 @@
 <!--                            <div class="progress" style="width: 78%;"></div>-->
 <!--                        </div>-->
 <!--                    </div>-->
-                    <div class="card-content">
-                        </div>
-                    </div>
                 </div>
                 <div class="card-chart">
                     <div class="card-header">
@@ -142,8 +161,10 @@
                         <div class="card-header">
 <!--                            <h3></h3>-->
                             <div id="chart">
-                                <canvas class="grid-item" id="time_citySmoke"></canvas>
-                                <canvas class="grid-item" id="time_smokeRealse"></canvas>
+                                <canvas class="grid-item grid-item1" id="time_citySmoke"></canvas>
+                                <canvas class="grid-item grid-item2" id="time_smokeRealse"></canvas>
+                                <canvas class="grid-item grid-item3" id="day_cost"></canvas>
+                                <p id="calendar">거주지 확산 달력</p>
                             </div>
 <!--                            <div class="card-content"></div>-->
                         </div>
@@ -151,6 +172,7 @@
         </div>
     </div>
 </div>
-<script src="script.js"></script>
+<script src="../static/script.js"></script>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>

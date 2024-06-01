@@ -47,8 +47,189 @@ function calcul_moveDist(windSpeed_avg, minute) {
     // 평균 풍속 m/s * 60초 * 분 단위 / 1000(m -> km)
     return windSpeed_avg * 60 * minute / 1000;
 }
+function generateDensityData(pointList, Q, u, sigmaY, sigmaZ, H, startLat, startLng) {
+    return pointList.map(location => {
+        const latitude = location[0];
+        const longitude = location[1];
+        let x = latToKm(startLat - latitude);
+        let y = lngToKm(latitude, startLng - longitude);
+        let density = calculateConcentration(Q, u, sigmaY, sigmaZ, H, x, y, 1);
+        density = density * (10 ** 11); // 너무 작은 값이라서 자릿수 늘리기
+        return { latitude, longitude, density };
+    });
+}
 
+function addSmokeHeatmap_single(factory, particle_type, wind) {
+    const maxQ_json = {
+        SOx : 300,
+        PM10 : 100,
+        NOx : 500
+    };
 
+    let Q;
+    const u = wind.speed;
+    let maxQ;
+    if(particle_type === 'SOx') {
+        maxQ = maxQ_json.SOx;
+        Q = factory.SOx;
+    } else if(particle_type === 'PM10') {
+        maxQ = maxQ_json.PM10;
+        Q = factory.PM10;
+    } else if(particle_type === 'NOx') {
+        maxQ = maxQ_json.NOx;
+        Q = factory.NOx;
+    }
+
+    const sigmaY = 20;
+    const sigmaZ = 10;
+    const H = 35;
+
+    let startLat = factory.latitude;
+    let startLng = factory.longitude;
+    let distance = calcul_moveDist(u, 30);
+    let n = u * 5 + 1;
+    let angle = wind.direction;
+    let pointList = pointSet(startLat, startLng, n, distance, angle);
+    let densityData = generateDensityData(pointList, Q, u, sigmaY, sigmaZ, H, startLat, startLng);
+
+    let maxDensity = Math.max(...densityData.map(d => d.density));
+    let minDensity = Math.min(...densityData.map(d => d.density));
+    const range = maxDensity - minDensity;
+
+    densityData = densityData.map(d => {
+        let x1 = d.density - minDensity;
+        let x2 = x1 / range;
+        let x3 = x2 * (Q / maxQ);
+        let normalizedDensity = x3;
+        if(d.density - minDensity === 0) normalizedDensity = 0.000001;
+        return { ...d, density: normalizedDensity };
+    });
+
+    return densityData;
+}
+function addSmokeHeatMap_double(map, factory1, factory2, particle_type1, particle_type2, wind1, wind2) {
+    const maxQ_json = {
+        SOx: 300,
+        PM10: 100,
+        NOx: 500
+    };
+
+    let Q1, Q2, maxQ1, maxQ2;
+    const u1 = wind1.speed;
+    const u2 = wind2.speed;
+
+    if (particle_type1 === 'SOx') {
+        maxQ1 = maxQ_json.SOx;
+        Q1 = factory1.SOx;
+    } else if (particle_type1 === 'PM10') {
+        maxQ1 = maxQ_json.PM10;
+        Q1 = factory1.PM10;
+    } else if (particle_type1 === 'NOx') {
+        maxQ1 = maxQ_json.NOx;
+        Q1 = factory1.NOx;
+    }
+
+    if (particle_type2 === 'SOx') {
+        maxQ2 = maxQ_json.SOx;
+        Q2 = factory2.SOx;
+    } else if (particle_type2 === 'PM10') {
+        maxQ2 = maxQ_json.PM10;
+        Q2 = factory2.PM10;
+    } else if (particle_type2 === 'NOx') {
+        maxQ2 = maxQ_json.NOx;
+        Q2 = factory2.NOx;
+    }
+
+    const sigmaY = 20;
+    const sigmaZ = 10;
+    const H = 35;
+
+    let startLat1 = factory1.latitude;
+    let startLng1 = factory1.longitude;
+    let startLat2 = factory2.latitude;
+    let startLng2 = factory2.longitude;
+    let distance1 = calcul_moveDist(u1, 30);
+    let distance2 = calcul_moveDist(u2, 30);
+    let n1 = u1 * 5 + 1;
+    let n2 = u2 * 5 + 1;
+    let angle1 = wind1.direction;
+    let angle2 = wind2.direction;
+
+    function generateDensityData(pointList, Q, u, sigmaY, sigmaZ, H, startLat, startLng) {
+        return pointList.map(location => {
+            const latitude = location[0];
+            const longitude = location[1];
+            let x = latToKm(startLat - latitude);
+            let y = lngToKm(latitude, startLng - longitude);
+            let density = calculateConcentration(Q, u, sigmaY, sigmaZ, H, x, y, 1);
+            density = density * (10 ** 11);
+            return { latitude, longitude, density };
+        });
+    }
+
+    let pointList1 = pointSet(startLat1, startLng1, n1, distance1, angle1);
+    let pointList2 = pointSet(startLat2, startLng2, n2, distance2, angle2);
+    let densityData1 = generateDensityData(pointList1, Q1, u1, sigmaY, sigmaZ, H, startLat1, startLng1);
+    let densityData2 = generateDensityData(pointList2, Q2, u2, sigmaY, sigmaZ, H, startLat2, startLng2);
+
+    let maxDensity1 = Math.max(...densityData1.map(d => d.density));
+    let minDensity1 = Math.min(...densityData1.map(d => d.density));
+    let range1 = maxDensity1 - minDensity1;
+    let maxDensity2 = Math.max(...densityData2.map(d => d.density));
+    let minDensity2 = Math.min(...densityData2.map(d => d.density));
+    let range2 = maxDensity2 - minDensity2;
+
+    densityData1 = densityData1.map(d => {
+        let x1 = d.density - minDensity1;
+        let x2 = x1 / range1;
+        let x3 = x2 * (Q1 / maxQ1);
+        let normalizedDensity = x3;
+        if (d.density - minDensity1 === 0) normalizedDensity = 0.000001;
+        return { ...d, density: normalizedDensity };
+    });
+
+    densityData2 = densityData2.map(d => {
+        let x1 = d.density - minDensity2;
+        let x2 = x1 / range2;
+        let x3 = x2 * (Q2 / maxQ2);
+        let normalizedDensity = x3;
+        if (d.density - minDensity2 === 0) normalizedDensity = 0.000001;
+        return { ...d, density: normalizedDensity };
+    });
+
+    var cfg = {
+        min: 0,
+        max: 1,
+        radius: 50,
+        maxOpacity: 0.5,
+        scaleRadius: false,
+        useLocalExtrema: false,
+        latField: 'latitude',
+        lngField: 'longitude',
+        valueField: 'density',
+        gradient: {
+            0.0: 'blue',
+            0.2: 'cyan',
+            0.4: 'lime',
+            0.6: 'yellow',
+            0.8: 'orange',
+            1.0: 'red',
+        }
+    };
+
+    var heatmapLayer = new HeatmapOverlay(cfg).addTo(map);
+
+    // 두 개의 densityData를 합침
+    let combinedDensityData = densityData1.concat(densityData2);
+    var testData = {
+        min: 0,
+        max: 1,
+        data: combinedDensityData
+    };
+
+    heatmapLayer.setData(testData);
+    console.log(testData);
+}
 
 function addSmokeHeatmap_single(map, factory, particle_type, wind) {
     // 각 오염물질의 최고 배출량 json 데이터

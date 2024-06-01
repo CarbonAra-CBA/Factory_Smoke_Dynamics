@@ -23,7 +23,7 @@ app = Flask(__name__)
 
 @app.route('/')
 def home():
-    return render_template('heatmapTest.html')  # index.html 파일 반환
+    return render_template('index.html')  # index.html 파일 반환
 
 # @app.route('/data')
 # def get_data():

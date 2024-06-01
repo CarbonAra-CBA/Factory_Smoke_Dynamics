@@ -47,7 +47,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 {
                     label: 'Desktop',
                     data: [43, 137, 61, 145, 26, 154],
-                    borderColor: '#2563eb',
+                    borderColor: '#1a62e8',
                     fill: false
                 },
                 {
@@ -69,20 +69,32 @@ let startLng = 129.327187114242;
 let factory = {
     latitude : 35.492082387322,
     longitude : 129.327187114242,
-    SOx : 100,
+    SOx : 130,
     PM10 : 50,
     NOx : 150
 };
+let factory2 = {
+    latitude:35.4797924311309,
+    longitude: 129.383123357278,
+    SOx: 90,
+    PM10: 55,
+    Nox:111
+}
 let particle_type = 'SOx';
 let wind = {
-    direction : 170,
-    speed : 3.5
+    direction : 340,
+    speed : 5.5
+};
+
+let wind2 = {
+    direction : 320,
+    speed : 3
 };
 
 // 맵과 히트맵 레이어 초기화
 var map = L.map('map', {
     center: [startLat, startLng],
-    zoom: 14,
+    zoom: 12,
     zoomControl: false
 });
 
@@ -93,7 +105,7 @@ L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
 }).addTo(map);
 
 /* 울산 Geojson 파일 업로드  */
-fetch("{{ url_for('static', filename='ulsan_building_geo.geojson') }}")
+fetch(geojsonUrl)
     .then(response => response.json())
     .then(data => {
         console.log("GeoJSON data:", data);  // GeoJSON 데이터 출력
@@ -111,24 +123,36 @@ fetch("{{ url_for('static', filename='ulsan_building_geo.geojson') }}")
     })
     .catch(error => console.log('Error loading GeoJSON:', error));
 
+let marker2= L.marker([35.4797924311309,129.383123357278]).addTo(map);
 // // 하나의 공장에서 나오는 매연을 히트맵으로 표현
 if (typeof addSmokeHeatmap_single === 'function') {
     // 세진 : 공장의 굴뚝 위치에 마커를 표시하고 팝업 창을 띄우기
     let marker = L.marker([factory.latitude, factory.longitude]).addTo(map);
-    marker.bindPopup("<b>회사명 : ㈜한주</b><br>주소 : 울산광역시 남구 사평로 60 (부곡동)").openPopup();
+
+    marker.bindPopup("<b>회사명 : 한국동서발전㈜울산발전본부</b><br>주소 : 울산광역시 남구 용잠로 623 (남화동)\n").openPopup();
+    // marker.bindPopup("<b>회사명 : ㈜한주</b><br>주소 : 울산광역시 남구 사평로 60 (부곡동)").openPopup();
     // 히트맵 그리기
-    addSmokeHeatmap_single(map, factory, particle_type, wind); //
+    // addSmokeHeatmap_single(map, factory, particle_type, wind); //
 } else {
     console.error("addSmokeHeatmap_single 함수가 정의되지 않았습니다.");
 }
+
+addSmokeHeatMap_double(map,factory,factory2,particle_type,particle_type,wind,wind2);
+
 
 // 해당 공장에서 나오는 매연의 양과 벌금의 수준을 차트로 표현
 const time_smokeRealse = document.getElementById('time_smokeRealse');
 // 임의의 데이터 생성
 let smokeRealse = [];
+let smokeRealse3 = [];
+let list = [15, 18, 67, 42, 98, 105, 37, 88, 112, 26, 59, 79, 91,19, 115, 50, 24, 77, 10, 111, 63, 82, 45, 30, 17, 101, 9, 60, 73, 39, 94, 56, 68, 77, 22, 107, 85, 44, 20, 93, 64, 35, 48, 116, 12, 100, 72, 23, 84, 108, 33, 55, 97, 71, 43, 21];
+let list2 = list.map(number=> number - 7 );
+
 for(let i = 0; i < 56; i++) {
-    smokeRealse.push(Math.floor(Math.random() * 301));
+    smokeRealse.push(Math.floor(Math.random() * 51) + 50);
+    smokeRealse3.push(Math.floor(Math.random() * 51));
 }
+
 let day_list = [];
 for(let i = 20; i < 27; i++) {
     for(let j = 9; j <= 16; j++) {
@@ -144,13 +168,17 @@ new Chart(time_smokeRealse, {
         datasets: [{
             label: '# 시간당 SOX 배출량(g/s)',
             data: smokeRealse,
-            borderWidth: 0.5
+            borderWidth: 1,
+            backgroundColor: 'rgba(54, 162, 235, 0.7)', // 바 차트의 배경색
+
+            pointRadius: 1, // 포인트(동그라미) 크기 설정
+            pointHoverRadius: 1 // 포인트(동그라미) 호버 크기 설정
         }]
     },
     options: {
         scales: {
             y: {
-                beginAtZero: true
+                // beginAtZero: true
             }
         }
     }
@@ -168,8 +196,34 @@ new Chart(time_citySmoke, {
         labels: day_list,
         datasets: [{
             label: '# 시간당 거주지 상공에 확산된 SOX 배출량(g/s)',
-            data: smokeRealse,
-            borderWidth: 0.5
+            data: list2,
+            borderWidth: 1,
+            backgroundColor: 'rgba(54, 162, 235, 0.7)', // 바 차트의 배경색
+
+        }]
+    },
+    options: {
+        scales: {
+            y: {
+                // beginAtZero: true
+            }
+        }
+    }
+});
+let cost = [];
+for(let i = 0; i < 7; i++) {
+    cost.push(Math.floor(Math.random() * 400) + 100);
+}
+new Chart(day_cost, {
+    type: 'line',
+    data: {
+        // 17개 라밸
+        labels: ['5/20', '5/21', '5/22', '5/23', '5/24', '5/25', '5/26'],
+        datasets: [{
+            label: '# 벌금액(천원)',
+            data: cost,
+            borderWidth: 1
+
         }]
     },
     options: {
@@ -180,31 +234,6 @@ new Chart(time_citySmoke, {
         }
     }
 });
-// 시간 대비 벌금
-let cost = [];
-// for(let i = 0; i < 7; i++) {
-//     cost.push(Math.floor(Math.random() * 400) + 100);
-// }
-// // new Chart(day_cost, {
-// //     type: 'line',
-// //     data: {
-// //         // 17개 라밸
-// //         labels: ['5/20', '5/21', '5/22', '5/23', '5/24', '5/25', '5/26'],
-// //         datasets: [{
-// //             label: '# 벌금액(천원)',
-// //             data: cost,
-// //             borderWidth: 0.5
-// //         }]
-// //     },
-// //     options: {
-// //         scales: {
-// //             y: {
-// //                 beginAtZero: true
-// //             }
-// //         }
-// //     }
-// // });
-//
 // new Chart(today_emission, {
 //     type: 'doughnut',
 //     data: {

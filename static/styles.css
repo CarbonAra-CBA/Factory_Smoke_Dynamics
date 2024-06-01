@@ -5,11 +5,12 @@
 body {
     font-family: 'Inter', sans-serif;
     margin: 0;
+    background-color: #ffffff;
 }
 
 .grid-container {
     display: grid;
-    grid-template-columns: 83px 1fr;
+    grid-template-columns: 115px 1fr;
     height: 100vh;
     width: 100vw;
 }
@@ -20,7 +21,7 @@ body {
     padding: 0.5rem;
     display: flex;
     flex-direction: column;
-    gap: 1.5rem;
+    gap: 2.5rem;
 }
 
 .header {
@@ -39,18 +40,19 @@ body {
 }
 
 h1 {
-    font-size: 1.5rem;
+    font-size: 26px;
     font-weight: bold;
 }
 
 .accordion {
     display: flex;
     flex-direction: column;
-    gap: 1rem;
+    gap: 3rem;
 }
 
 .accordion-item {
-    background-color: #374151;
+    font-size:23px;
+    background-color: #1d293b;
     border-radius: var(--radius);
 }
 
@@ -132,7 +134,7 @@ header h2 {
 .cards {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 1.5rem;
+    gap: 1rem;
 }
 
 .card {
@@ -153,6 +155,7 @@ header h2 {
     gap: 0.75rem;
 }
 .card-header {
+    margin-block-end:7px;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -203,16 +206,24 @@ header h2 {
 }
 
 #chart {
-    display: flex;
+    display: inline-grid;
     grid-template-columns: repeat(2, 1fr);
     grid-template-rows: repeat(2, 1fr);
-    gap: 17px; /* Optional: space between grid items */
-    width: 46%; /* Adjust as needed */
-    height: 54%; /* Adjust as needed */
+    gap: 38px;
+    width: 44%;
+    height: 81%;
     padding-left: 58px;
-    padding-right: 14px;
-    padding-top: 50px;
+    padding-right: 35px;
+    padding-top: 0px;
 }
 
-.grid-item {
+
+.specific {
+    font-size:13px;
+}
+
+#calendar {
+    font-size: 14px;
+    color: gray;
+    text-align: center;
 }
