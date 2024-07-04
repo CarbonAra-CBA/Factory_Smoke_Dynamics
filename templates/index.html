@@ -25,34 +25,28 @@
 <div class="grid-container">
     <div class="sidebar">
         <div class="header">
-<!--            <svg class="filter-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">-->
-<!--                <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>-->
-<!--            </svg>-->
             <h1>BlueSky</h1>
         </div>
         <div class="accordion">
             <div class="accordion-item">
                 <div class="accordion-trigger">대시보드</div>
                 <div class="accordion-content">
-                    <label><input type="checkbox" id="location-city1"> City 1</label>
-                    <label><input type="checkbox" id="location-city2"> City 2</label>
-                    <label><input type="checkbox" id="location-city3"> City 3</label>
+                    <label><a id="location-city1" href="index.html"> 부산</a></label>
+                    <label><a id="location-city2" href="index.html"> 울산</a></label>
+                    <label><a id="location-city3" href="index.html"> 경남</a></label>
                 </div>
             </div>
             <div class="accordion-item">
-                <div class="accordion-trigger">월별 분석</div>
+                <div class="accordion-trigger"><a href="monthAnalize.html">월별 분석</a></div>
+            </div>
+            <div class="accordion-item">
+                <div class="accordion-trigger"><a href="SetModel.html">분석모델 설정</a></div>
                 <div class="accordion-content">
 
                 </div>
             </div>
             <div class="accordion-item">
-                <div class="accordion-trigger">분석모델 설정</div>
-                <div class="accordion-content">
-
-                </div>
-            </div>
-            <div class="accordion-item">
-                <div class="accordion-trigger">공장 알림 설정</div>
+                <div class="accordion-trigger"><a href="SetAlram.html">공장 알림 설정</a></div>
                 <div class="accordion-content">
 
                 </div>
@@ -63,11 +57,6 @@
         <header>
             <h2>블루 스카이 울산 2 공장주 대시보드</h2>
             <div class="dropdown">
-<!--                <button class="dropdown-trigger">-->
-<!--                    <svg class="filter-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">-->
-<!--                        <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>-->
-<!--                    </svg>-->
-<!--                </button>-->
                 <div class="dropdown-content">
                     <label><input type="checkbox" id="filter-pm25"> sox</label>
                     <label><input type="checkbox" id="filter-pm10"> pox</label>
@@ -87,7 +76,7 @@
                     <div class="card-content">
                         <div class="value">45 μg/m³</div>
                         <div></div>
-                        <h3>절적한 수준입니다.</h3>
+                        <h3>적절한 수준입니다.</h3>
                         <div>최근 1시간 동안의 SOX 배출량입니다.</div>
                     </div>
                 </div>
@@ -113,14 +102,7 @@
                             <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
                         </svg>
                     </div>
-<!--                    <div class="card-content">-->
-<!--                        <div class="value">450 ppm</div>-->
-<!--                        <p>Elevated levels</p>-->
-<!--                    </div>-->
                     <div class="card-header">
-<!--                        <div class="progress-bar">-->
-<!--                            <div class="progress" style="width: 78%;"></div>-->
-<!--                        </div>-->
                     </div>
                     <div class="card-content">
                     <div class="value">55</div>
@@ -132,14 +114,6 @@
                 </div>
             </div>
             <div class="charts">
-<!--                    <div class="card-header">-->
-<!--                        <h3></h3>-->
-<!--                        <div class="value text-red-500">156 </div>-->
-<!--                        <p> Unhealthy for sensitive groups</p>-->
-<!--                        <div class="progress-bar">-->
-<!--                            <div class="progress" style="width: 78%;"></div>-->
-<!--                        </div>-->
-<!--                    </div>-->
                 </div>
                 <div class="card-chart">
                     <div class="card-header">
@@ -149,24 +123,14 @@
 
                     </div>
                 </div>
-<!--                <div class="card">-->
-<!--                    <div class="card-header">-->
-<!--                        <h3>Trends</h3>-->
-<!--                    </div>-->
-<!--                    <div class="card-content">-->
-<!--&lt;!&ndash;                        <div id="linechart" class="chart"></div>&ndash;&gt;-->
-<!--                    </div>-->
-<!--                </div>-->
                     <div class="card-chart">
                         <div class="card-header">
-<!--                            <h3></h3>-->
                             <div id="chart">
                                 <canvas class="grid-item grid-item1" id="time_citySmoke"></canvas>
                                 <canvas class="grid-item grid-item2" id="time_smokeRealse"></canvas>
                                 <canvas class="grid-item grid-item3" id="day_cost"></canvas>
                                 <p id="calendar">거주지 확산 달력</p>
                             </div>
-<!--                            <div class="card-content"></div>-->
                         </div>
                     </div>
         </div>

@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pollution Monitor</title>
+    <link rel="stylesheet" href="../static/styles.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.2.0/dist/leaflet.css"/>
+    <script src="https://unpkg.com/leaflet@1.2.0/dist/leaflet.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/heatmap.js/2.0.2/heatmap.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/leaflet-heatmap@1.0.0/leaflet-heatmap.min.js"></script>
+    <script src="https://unpkg.com/leaflet-geometryutil@0.13.1/leaflet.geometryutil.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="../static/heatmap_smoke.js"></script>
+    <script src="{{ url_for('static', filename='gaussian.js') }}"></script>
+    <script src="{{ url_for('static', filename='heatmap_smoke.js') }}"></script>
+    <script>
+        var geojsonUrl = "{{ url_for('static', filename='ulsan_building_geo.geojson') }}";
+    </script>
+</head>
+<body>
+<div class="grid-container">
+    <div class="sidebar">
+        <div class="header">
+            <h1>BlueSky</h1>
+        </div>
+        <div class="accordion">
+            <div class="accordion-item">
+                <a class="accordion-trigger" href="index.html">대시보드</a>
+            </div>
+            <div class="accordion-item">
+                <div class="accordion-trigger"><a href="monthAnalize.html">월별 분석</a></div>
+            </div>
+            <div class="accordion-item">
+                <div class="accordion-trigger"><a href="SetModel.html">분석모델 설정</a></div>
+                <div class="accordion-content">
+
+                </div>
+            </div>
+            <div class="accordion-item">
+                <div class="accordion-trigger"><a href="SetAlram.html">공장 알림 설정</a></div>
+                <div class="accordion-content">
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
