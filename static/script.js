@@ -234,22 +234,3 @@ new Chart(day_cost, {
         }
     }
 });
-// new Chart(today_emission, {
-//     type: 'doughnut',
-//     data: {
-//         labels: ['먼지', '황산화물', '질소산화물', '염화수소', '불화수소', '암모니아', '일산화탄소'],
-//         datasets: [{
-//             label: '# 오염물질 배출량',
-//             data: [10, 50, 30, 5, 3, 3, 70, 100],
-//             borderWidth: 0.5
-//         }]
-//     },
-//     options: {
-//         scales: {
-//             y: {
-//                 beginAtZero: true
-//             }
-//         }
-//     }
-// });
-//

@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pollution Monitor</title>
+    <link rel="stylesheet" href="../static/styles.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.2.0/dist/leaflet.css"/>
+    <script src="https://unpkg.com/leaflet@1.2.0/dist/leaflet.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/heatmap.js/2.0.2/heatmap.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/leaflet-heatmap@1.0.0/leaflet-heatmap.min.js"></script>
+    <script src="https://unpkg.com/leaflet-geometryutil@0.13.1/leaflet.geometryutil.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="../static/heatmap_smoke.js"></script>
+    <script src="{{ url_for('static', filename='gaussian.js') }}"></script>
+    <script src="{{ url_for('static', filename='heatmap_smoke.js') }}"></script>
+    <script>
+        var geojsonUrl = "{{ url_for('static', filename='ulsan_building_geo.geojson') }}";
+    </script>
+</head>
+<body>
+<div class="grid-container">
+    <div class="sidebar">
+        <div class="header">
+            <h1>BlueSky</h1>
+        </div>
+        <div class="accordion">
+            <div class="accordion-item">
+                <div class="accordion-trigger">대시보드</div>
+                <div class="accordion-content">
+                    <label><input type="checkbox" id="location-city1"> City 1</label>
+                    <label><input type="checkbox" id="location-city2"> City 2</label>
+                    <label><input type="checkbox" id="location-city3"> City 3</label>
+                </div>
+            </div>
+            <div class="accordion-item">
+                <a class="accordion-trigger" href="monthAnalize.html">월별 분석</a>
+            </div>
+            <div class="accordion-item">
+                <div class="accordion-trigger">분석모델 설정</div>
+                <div class="accordion-content">
+
+                </div>
+            </div>
+            <div class="accordion-item">
+                <div class="accordion-trigger">공장 알림 설정</div>
+                <div class="accordion-content">
+
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="main-content">
+        <header>
+            <h2>월별 분석</h2>
+        </header>
+        <div class="month-analize">
+            <div class="cards_2">
+                <div class="card" style="align-items: center;">
+                    <h2>작년 월별 벌금액</h2>
+                    <div class="chart-container">
+                        <canvas id="finesChart"></canvas>
+                    </div>
+                </div>
+                <div class="card" style="align-items: center;">
+                    <h2>작년 월별 SOX 배출량</h2>
+                    <div class="chart-container">
+                        <canvas id="SOXChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="cards_2">
+                <div class="card" style="align-items: center;">
+                    <h2>월별 거주지로 확산된 SOX 비율</h2>
+                    <div class="chart-container">
+                        <canvas id="soxSpreadChart"></canvas>
+                    </div>
+                </div>
+                
+                <div class="card" style="align-items: center;">
+                    <div class="solution-card">
+                        <h2>벌금액 감면 솔루션</h2>
+                        <p>
+                            작년 2월, 5월, 10월, 12월에는 거주지 방향으로 바람이 많이 불어서 SOX 배출량 대비 벌금액 비율이 높음. 
+                            따라서 2월, 5월, 10월, 12월에는 SOX 배출량을 감소시키는 것을 추천
+                        </p>
+                    </div>
+                    <div class="solution-card">
+                        <h2>배출량 대비 효율 증가 솔루션</h2>
+                        <p>
+                            작년 4월, 6월, 8월, 11월에는 상대적으로 거주지 구역에 SOX 확산 비율이 낮음.
+                            따라서 4월, 6월, 10월, 12월에는 생산량을 높여 감면 솔루션에서 깎인 생산성을 복구하는 것을 추천.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+function generateRandomNumbers(min, max, count) {
+    const randomNumbers = [];
+    for (let i = 0; i < count; i++) {
+        const randomNumber = Math.floor(Math.random() * (max - min + 1)) + min;
+        randomNumbers.push(randomNumber);
+    }
+    return randomNumbers;
+}
+
+let list_SOX = [575, 561, 1030, 930, 437, 1480, 944, 393, 537, 912, 393, 1375];
+let list_fine = [362, 476, 731, 418, 340, 547, 594, 165, 268, 912, 157, 1306];
+let sox_ratios = list_SOX.map((sox, index) => (list_fine[index] / sox) * 100);
+
+document.addEventListener('DOMContentLoaded', function() {
+    const ctx_fine = document.getElementById('finesChart').getContext('2d');
+    
+    const data_fine = {
+        labels: [
+            '1월', '2월', '3월', '4월', '5월', '6월',
+            '7월', '8월', '9월', '10월', '11월', '12월'
+        ],
+        datasets: [{
+            label: '2023년도 월별 벌금액(단위 : 1만원)',
+            data: list_fine,
+            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+            borderColor: 'rgba(75, 192, 192, 1)',
+            borderWidth: 1
+        }]
+    };
+
+    const config_fine = {
+        type: 'bar',
+        data: data_fine,
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 1600
+                }
+            }
+        }
+    };
+
+    new Chart(ctx_fine, config_fine);
+
+    const ctx_sox = document.getElementById('SOXChart').getContext('2d');
+    
+    const data_sox = {
+        labels: [
+            '1월', '2월', '3월', '4월', '5월', '6월',
+            '7월', '8월', '9월', '10월', '11월', '12월'
+        ],
+        datasets: [{
+            label: '2023년도 월별 총 SOX 배출량(단위 : ppm)',
+            data: list_SOX,
+            backgroundColor: 'rgba(75, 85, 192, 0.2)',
+            borderColor: 'rgba(75, 85, 192, 1)',
+            borderWidth: 1
+        }]
+    };
+
+    const config_sox = {
+        type: 'bar',
+        data: data_sox,
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 1600
+                }
+            }
+        }
+    };
+
+    new Chart(ctx_sox, config_sox);
+
+    const ctx_sox_spread = document.getElementById('soxSpreadChart').getContext('2d');
+    
+    const data_sox_spread = {
+        labels: [
+            '1월', '2월', '3월', '4월', '5월', '6월',
+            '7월', '8월', '9월', '10월', '11월', '12월'
+        ],
+        datasets: [{
+            label: '거주지로 확산된 SOX 비율(%)',
+            data: sox_ratios,
+            backgroundColor: 'rgba(192, 75, 192, 0.2)',
+            borderColor: 'rgba(192, 75, 192, 1)',
+            borderWidth: 1
+        }]
+    };
+
+    const config_sox_spread = {
+        type: 'bar',
+        data: data_sox_spread,
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 100
+                }
+            }
+        }
+    };
+
+    new Chart(ctx_sox_spread, config_sox_spread);
+});
+</script>
+</body>
+</html>
