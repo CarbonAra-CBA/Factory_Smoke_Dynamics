@@ -20,35 +20,167 @@
     <script>
         var geojsonUrl = "{{ url_for('static', filename='ulsan_building_geo.geojson') }}";
     </script>
+    <style>
+       
+        .container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            width: 100%;
+        }
+        
+        .description {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 20px;
+        }
+        label {
+            margin-bottom: 5px;
+            color: #333;
+        }
+        input[type="email"] {
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            padding: 10px;
+            background-color: #007BFF;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .message {
+            text-align: center;
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        .list {
+            margin-top: 20px;
+        }
+        .list h3 {
+            margin-bottom: 10px;
+        }
+        .list ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        .list ul li {
+            background-color: #f4f4f4;
+            margin-bottom: 5px;
+            padding: 10px;
+            border-radius: 4px;
+        }
+    </style>
 </head>
 <body>
-<div class="grid-container">
-    <div class="sidebar">
-        <div class="header">
-            <h1>BlueSky</h1>
+    <div class="grid-container">
+        <div class="sidebar">
+            <div class="header">
+                <h1>BlueSky</h1>
+            </div>
+            <div class="accordion">
+                <div class="accordion-item">
+                    <a class="accordion-trigger" href="index.html">대시보드</a>
+                </div>
+                <div class="accordion-item">
+                    <div class="accordion-trigger"><a href="monthAnalize.html">월별 분석</a></div>
+                </div>
+                <div class="accordion-item">
+                    <div class="accordion-trigger"><a href="SetModel.html">분석모델 설정</a></div>
+                    <div class="accordion-content">
+                    </div>
+                </div>
+                <div class="accordion-item">
+                    <div class="accordion-trigger"><a href="SetAlram.html">공장 알림 설정</a></div>
+                    <div class="accordion-content">
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="accordion">
-            <div class="accordion-item">
-                <a class="accordion-trigger" href="index.html">대시보드</a>
+        <div class="container">
+            <div class="header">
+                <h1>BlueSky Pollution Monitor</h1>
             </div>
-            <div class="accordion-item">
-                <div class="accordion-trigger"><a href="monthAnalize.html">월별 분석</a></div>
+            <div class="description">
+                <p>Enter your email to view the warnings you have received so far.</p>
             </div>
-            <div class="accordion-item">
-                <div class="accordion-trigger"><a href="SetModel.html">분석모델 설정</a></div>
-                <div class="accordion-content">
-
-                </div>
-            </div>
-            <div class="accordion-item">
-                <div class="accordion-trigger"><a href="SetAlram.html">공장 알림 설정</a></div>
-                <div class="accordion-content">
-
-                </div>
+            <form id="pollutionForm">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" name="email" required>
+                <button type="submit">Submit</button>
+            </form>
+            <div id="message" class="message" style="display: none;"></div>
+            <div class="list" id="warningList" style="display: none;">
+                <h3>Warnings Received:</h3>
+                <ul id="warningItems"></ul>
             </div>
         </div>
     </div>
-</div>
 
+    <script>
+        document.getElementById('pollutionForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            var email = document.getElementById('email').value;
+            var message = document.getElementById('message');
+            var warningList = document.getElementById('warningList');
+            var warningItems = document.getElementById('warningItems');
+
+            // 이메일 유효성 검사
+            var emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailPattern.test(email)) {
+                message.textContent = 'Invalid email address. Please enter a valid email.';
+                message.className = 'message error';
+                message.style.display = 'block';
+                warningList.style.display = 'none';
+                return;
+            }
+
+            // Simulate fetching warning data from the server
+            var warnings = [
+                { date: '2024-01-15', level: 150 },
+                { date: '2024-02-20', level: 200 },
+                { date: '2024-03-05', level: 180 }
+            ]; // Example data
+
+            if (warnings.length > 0) {
+                warningItems.innerHTML = '';
+                warnings.forEach(function(warning) {
+                    var li = document.createElement('li');
+                    li.textContent = `Date: ${warning.date}, SOx Level: ${warning.level} ppm`;
+                    warningItems.appendChild(li);
+                });
+
+                message.style.display = 'none';
+                warningList.style.display = 'block';
+            } else {
+                message.textContent = 'No warnings found for this email.';
+                message.className = 'message error';
+                message.style.display = 'block';
+                warningList.style.display = 'none';
+            }
+        });
+    </script>
 </body>
 </html>
