@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ko">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -20,6 +20,71 @@
     <script>
         var geojsonUrl = "{{ url_for('static', filename='ulsan_building_geo.geojson') }}";
     </script>
+    
+    <style>
+       
+        .main-content {
+            padding: 20px;
+            background-color: #fff;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            border-radius: 8px;
+        }
+
+        
+        h2 {
+            color: #007BFF;
+            margin: 0;
+        }
+        .dropdown {
+            position: relative;
+            display: inline-block;
+        }
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            background-color: #f9f9f9;
+            min-width: 160px;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+            padding: 12px 16px;
+            z-index: 1;
+            border-radius: 4px;
+        }
+        .dropdown:hover .dropdown-content {
+            display: block;
+        }
+        .dropdown-content label {
+            display: block;
+            color: #333;
+            padding: 8px 0;
+        }
+        section {
+            padding: 10px 0;
+        }
+        h3 {
+            color: #333;
+            border-bottom: 2px solid #007BFF;
+            padding-bottom: 10px;
+        }
+        h4 {
+            color: #007BFF;
+            margin-top: 20px;
+        }
+        p {
+            color: #555;
+            line-height: 1.8;
+        }
+        ul {
+            list-style-type: disc;
+            margin-left: 20px;
+        }
+        
+        pre {
+            background-color: #f4f4f4;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+    </style>
 </head>
 <body>
 <div class="grid-container">
@@ -45,16 +110,16 @@
                 </div>
             </div>
         </div>
-        
     </div>
     <div class="main-content">
         <header>
             <h2>분석 모델</h2>
             <div class="dropdown">
+                <span>필터 선택</span>
                 <div class="dropdown-content">
-                    <label><input type="checkbox" id="filter-pm25"> sox</label>
-                    <label><input type="checkbox" id="filter-pm10"> pox</label>
-                    <label><input type="checkbox" id="filter-co2"> co2</label>
+                    <label><input type="checkbox" id="filter-pm25"> SOx</label>
+                    <label><input type="checkbox" id="filter-pm10"> POx</label>
+                    <label><input type="checkbox" id="filter-co2"> CO2</label>
                 </div>
             </div>
         </header>
@@ -86,7 +151,8 @@
                 <li><strong>X₀</strong>: 초기 입자 위치</li>
                 <li><strong>V(t)</strong>: 시간 t에서의 입자 속도</li>
             </ul>
-            <a href="SetModel3.html" style="color: blue;">Lagrangian Particle Model Model 적용</a>
+            <a href="SetModel3.html" style="color: blue;">Lagrangian Particle Model 적용</a>
+
             <h4>3. Eulerian Grid Model</h4>
             <p>이 모델은 고정된 그리드 상에서 오염물질 농도를 계산합니다. 넓은 지역에서의 오염물질 확산을 분석하는 데 사용되며, 대규모 대기오염 연구에 유용합니다.</p>
             <p><strong>공식:</strong></p>
@@ -94,7 +160,7 @@
             <p><strong>변수 설명:</strong></p>
             <ul>
                 <li><strong>C</strong>: 오염물질 농도</li>
-                <li><strong>t</strong>: 시간</li>
+                <li><strong>t</strong>: 시간</strong></li>
                 <li><strong>u, v, w</strong>: x, y, z 방향의 바람 속도 성분</li>
                 <li><strong>Kₓ, K_y, K_z</strong>: x, y, z 방향의 확산 계수</li>
                 <li><strong>S</strong>: 오염원에서의 소스 항</li>
