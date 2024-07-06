@@ -37,18 +37,71 @@
             <div class="accordion-item">
                 <div class="accordion-trigger"><a href="SetModel.html">분석모델 설정</a></div>
                 <div class="accordion-content">
-
                 </div>
             </div>
             <div class="accordion-item">
                 <div class="accordion-trigger"><a href="SetAlram.html">공장 알림 설정</a></div>
                 <div class="accordion-content">
-
                 </div>
             </div>
         </div>
+        
+    </div>
+    <div class="main-content">
+        <header>
+            <h2>분석 모델</h2>
+            <div class="dropdown">
+                <div class="dropdown-content">
+                    <label><input type="checkbox" id="filter-pm25"> sox</label>
+                    <label><input type="checkbox" id="filter-pm10"> pox</label>
+                    <label><input type="checkbox" id="filter-co2"> co2</label>
+                </div>
+            </div>
+        </header>
+        <section>
+            <h3>대기확산 모델</h3>
+            <p>대기확산 모델은 다양한 상황에서 오염물질의 확산을 분석하기 위해 사용됩니다. 다음은 주요 모델과 그 사용 상황에 대한 설명입니다.</p>
+            <h4>1. Gaussian Plume Model</h4>
+            <p>이 모델은 비교적 간단한 수학적 모델로, 점 오염원에서의 오염물질 확산을 예측하는 데 사용됩니다. 주로 고정된 지점에서 배출되는 오염물질에 적합합니다.</p>
+            <p><strong>공식:</strong></p>
+            <pre>C(x,y,z) = (Q / (2πuσ_yσ_z)) * exp(-y² / (2σ_y²)) * exp(-H² / (2σ_z²))</pre>
+            <p><strong>변수 설명:</strong></p>
+            <ul>
+                <li><strong>C(x,y,z)</strong>: 위치 (x, y, z) 에서의 오염물질 농도</li>
+                <li><strong>Q</strong>: 오염원에서의 배출률 (g/s)</li>
+                <li><strong>u</strong>: 바람 속도 (m/s)</li>
+                <li><strong>σ_y</strong>: 횡방향 분산 파라미터</li>
+                <li><strong>σ_z</strong>: 수직 분산 파라미터</li>
+                <li><strong>H</strong>: 효과적인 굴뚝 높이 (m)</li>
+            </ul>
+            <a href="SetModel2.html" style="color: blue;">Gaussian Plume Model 적용</a>
+            
+            <h4>2. Lagrangian Particle Model</h4>
+            <p>이 모델은 오염물질 입자의 이동을 추적하여 확산을 분석합니다. 복잡한 지형이나 비균질한 대기 조건에서 사용하기에 적합합니다.</p>
+            <p><strong>공식:</strong></p>
+            <pre>X(t) = X₀ + ∫V(t) dt</pre>
+            <p><strong>변수 설명:</strong></p>
+            <ul>
+                <li><strong>X(t)</strong>: 시간 t에서의 입자 위치</li>
+                <li><strong>X₀</strong>: 초기 입자 위치</li>
+                <li><strong>V(t)</strong>: 시간 t에서의 입자 속도</li>
+            </ul>
+            <a href="SetModel3.html" style="color: blue;">Lagrangian Particle Model Model 적용</a>
+            <h4>3. Eulerian Grid Model</h4>
+            <p>이 모델은 고정된 그리드 상에서 오염물질 농도를 계산합니다. 넓은 지역에서의 오염물질 확산을 분석하는 데 사용되며, 대규모 대기오염 연구에 유용합니다.</p>
+            <p><strong>공식:</strong></p>
+            <pre>∂C/∂t + u∂C/∂x + v∂C/∂y + w∂C/∂z = Kₓ∂²C/∂x² + K_y∂²C/∂y² + K_z∂²C/∂z² + S</pre>
+            <p><strong>변수 설명:</strong></p>
+            <ul>
+                <li><strong>C</strong>: 오염물질 농도</li>
+                <li><strong>t</strong>: 시간</li>
+                <li><strong>u, v, w</strong>: x, y, z 방향의 바람 속도 성분</li>
+                <li><strong>Kₓ, K_y, K_z</strong>: x, y, z 방향의 확산 계수</li>
+                <li><strong>S</strong>: 오염원에서의 소스 항</li>
+            </ul>
+            <a href="SetModel4.html" style="color: blue;">Eulerian Grid Model 적용</a>
+        </section>
     </div>
 </div>
-
 </body>
 </html>
