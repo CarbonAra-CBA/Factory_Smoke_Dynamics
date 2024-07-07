@@ -21,7 +21,6 @@
         var geojsonUrl = "{{ url_for('static', filename='ulsan_building_geo.geojson') }}";
     </script>
     <style>
-       
         .container {
             background-color: #fff;
             padding: 20px;
@@ -29,8 +28,9 @@
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
             max-width: 600px;
             width: 100%;
+            margin: 0 auto; /* Center align container */
         }
-        
+
         .description {
             text-align: center;
             margin-bottom: 20px;
@@ -39,16 +39,18 @@
             display: flex;
             flex-direction: column;
             margin-bottom: 20px;
+            align-items: center; /* Center align form elements */
         }
         label {
             margin-bottom: 5px;
             color: #333;
         }
-        input[type="email"] {
+        input[type="email"], input[type="number"] {
             padding: 10px;
             margin-bottom: 20px;
             border: 1px solid #ccc;
             border-radius: 4px;
+            width: 100%; /* Full width for inputs */
         }
         button {
             padding: 10px;
@@ -57,6 +59,7 @@
             border: none;
             border-radius: 4px;
             cursor: pointer;
+            width: 100%; /* Full width for button */
         }
         button:hover {
             background-color: #0056b3;
@@ -77,6 +80,7 @@
         }
         .list {
             margin-top: 20px;
+            text-align: center; /* Center align list */
         }
         .list h3 {
             margin-bottom: 10px;
@@ -90,6 +94,7 @@
             margin-bottom: 5px;
             padding: 10px;
             border-radius: 4px;
+            text-align: left; /* Left align list items for better readability */
         }
     </style>
 </head>
@@ -128,6 +133,10 @@
             <form id="pollutionForm">
                 <label for="email">Email Address</label>
                 <input type="email" id="email" name="email" required>
+                <label for="soxLevel">SOX Level to be Notified (ppm)</label>
+                <input type="number" id="soxLevel" name="soxLevel" required>
+                <label for="fineIndex">Fine Index to be Notified</label>
+                <input type="number" id="fineIndex" name="fineIndex" required>
                 <button type="submit">Submit</button>
             </form>
             <div id="message" class="message" style="display: none;"></div>
@@ -143,6 +152,8 @@
             event.preventDefault();
 
             var email = document.getElementById('email').value;
+            var soxLevel = document.getElementById('soxLevel').value;
+            var fineIndex = document.getElementById('fineIndex').value;
             var message = document.getElementById('message');
             var warningList = document.getElementById('warningList');
             var warningItems = document.getElementById('warningItems');
@@ -157,25 +168,29 @@
                 return;
             }
 
-            // Simulate fetching warning data from the server
             var warnings = [
-                { date: '2024-01-15', level: 150 },
-                { date: '2024-02-20', level: 200 },
-                { date: '2024-03-05', level: 180 }
-            ]; // Example data
+                { date: '2024-01-15', SOX: 100, fineIndex: 90 },
+                { date: '2024-02-20', SOX: 70, fineIndex: 75 },
+                { date: '2024-03-05', SOX: 50, fineIndex: 60 }
+            ];
 
-            if (warnings.length > 0) {
+            
+            var filteredWarnings = warnings.filter(function(warning) {
+                return warning.SOX >= soxLevel && warning.fineIndex >= fineIndex;
+            });
+
+            if (filteredWarnings.length > 0) {
                 warningItems.innerHTML = '';
-                warnings.forEach(function(warning) {
+                filteredWarnings.forEach(function(warning) {
                     var li = document.createElement('li');
-                    li.textContent = `Date: ${warning.date}, SOx Level: ${warning.level} ppm`;
+                    li.textContent = `Date: ${warning.date}, SOX: ${warning.SOX} ppm, Fine Index: ${warning.fineIndex}`;
                     warningItems.appendChild(li);
                 });
 
                 message.style.display = 'none';
                 warningList.style.display = 'block';
             } else {
-                message.textContent = 'No warnings found for this email.';
+                message.textContent = 'No warnings found for this email that exceed the specified levels.';
                 message.className = 'message error';
                 message.style.display = 'block';
                 warningList.style.display = 'none';
