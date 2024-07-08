@@ -1,4 +1,68 @@
+document.addEventListener('DOMContentLoaded', function () {
+    // Accordion functionality
+    document.querySelectorAll('.accordion-trigger').forEach(trigger => {
+        trigger.addEventListener('click', () => {
+            const content = trigger.nextElementSibling;
+            content.style.display = content.style.display === 'block' ? 'none' : 'block';
+        });
+    });
 
+    // Dropdown functionality
+    const dropdownTrigger = document.querySelector('.dropdown-trigger');
+    const dropdownContent = document.querySelector('.dropdown-content');
+
+    dropdownTrigger.addEventListener('click', () => {
+        dropdownContent.style.display = dropdownContent.style.display === 'block' ? 'none' : 'block';
+    });
+
+    // Example charts using Chart.js
+    const heatmapCtx = document.getElementById('heatmap').getContext('2d');
+    new Chart(heatmapCtx, {
+        type: 'heatmap',
+        data: {
+            labels: ['1', '2', '3', '4', '5', '6', '7', '8', '9'],
+            datasets: [
+                {
+                    label: 'A',
+                    data: [4415, -59456, -79886, 14478, -63874, -47542, 16635, -30278, -95178]
+                },
+                {
+                    label: 'B',
+                    data: [41241, -77516, -19422, 61220, -65044, -59254, 9299, -58470, 51828]
+                },
+                // Add more data as necessary
+            ]
+        },
+        options: {
+            // Customize chart options
+        }
+    });
+
+    const linechartCtx = document.getElementById('linechart').getContext('2d');
+    new Chart(linechartCtx, {
+        type: 'line',
+        data: {
+            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+            datasets: [
+                {
+                    label: 'Desktop',
+                    data: [43, 137, 61, 145, 26, 154],
+                    borderColor: '#1a62e8',
+                    fill: false
+                },
+                {
+                    label: 'Mobile',
+                    data: [60, 48, 177, 78, 96, 204],
+                    borderColor: '#e11d48',
+                    fill: false
+                }
+            ]
+        },
+        options: {
+            // Customize chart options
+        }
+    });
+});
 
 let startLat = 35.492082387322;
 let startLng = 129.327187114242;
@@ -18,12 +82,12 @@ let factory2 = {
 }
 let particle_type = 'SOx';
 let wind = {
-    direction : 340,
+    direction : 330,
     speed : 5.5
 };
 
 let wind2 = {
-    direction : 320,
+    direction : 310,
     speed : 3
 };
 
