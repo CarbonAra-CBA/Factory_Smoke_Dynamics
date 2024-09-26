@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>사용자 정보 입력</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f0f0;
+        }
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            font-size: 1.2em;
+            margin-bottom: 20px;
+        }
+        .input-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="text"], input[type="date"] {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .checkbox-group {
+            margin-bottom: 15px;
+        }
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+        }
+        .checkbox-text {
+            margin-left: 10px;
+            font-size: 0.9em;
+        }
+        .info-text {
+            font-size: 0.8em;
+            color: #666;
+            margin-top: 5px;
+        }
+        .submit-button {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1em;
+        }
+        .submit-button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+    </style>
+    <script src="userController.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>사용자 정보 입력</h1>
+        <form id="userInfoForm">
+            <div class="input-group">
+                <label for="name">이름</label>
+                <input type="text" id="name" name="name" required>
+            </div>
+            <div class="input-group">
+                <label for="birthdate">생년월일</label>
+                <input type="date" id="birthdate" name="birthdate" required>
+            </div>
+            <div class="input-group">
+                <label for="address">거주지</label>
+                <input type="text" id="address" name="address" required>
+            </div>
+            <div class="input-group">
+                <label for="residencePeriod">거주 시작기간</label>
+                <input type="date" id="residencePeriod" name="residencePeriod" required>
+            </div>
+            <div class="checkbox-group">
+                <label class="checkbox-label">
+                    <input type="checkbox" id="personalInfoConsent" name="personalInfoConsent">
+                    <span class="checkbox-text">개인정보 활용 동의</span>
+                </label>
+                <p class="info-text">수집 내용 : 이름, 생년월일, 거주지 주소, 거주 기간<br>활용 목적 : 건강영향평가 보고서 작성</p>
+            </div>
+            <div class="checkbox-group">
+                <label class="checkbox-label">
+                    <input type="checkbox" id="healthInfoConsent" name="healthInfoConsent">
+                    <span class="checkbox-text">건강정보 활용 동의</span>
+                </label>
+                <p class="info-text">수집 내용 : 거주기간 내 건강 상태 정보<br>활용 목적 : 건강영향평가 보고서 작성</p>
+            </div>
+            <button type="submit" id="submitButton" class="submit-button" disabled>제출</button>
+        </form>
+    </div>
+
+    <script>
+        const form = document.getElementById('userInfoForm');
+        const submitButton = document.getElementById('submitButton');
+        const inputs = form.querySelectorAll('input[type="text"], input[type="date"]');
+        const checkboxes = form.querySelectorAll('input[type="checkbox"]');
+
+        function validateForm() {
+            let isValid = true;
+
+            // 모든 입력 필드가 채워져 있는지 확인
+            inputs.forEach(input => {
+                if (!input.value.trim()) {
+                    isValid = false;
+                }
+            });
+
+            // 모든 체크박스가 체크되어 있는지 확인
+            checkboxes.forEach(checkbox => {
+                if (!checkbox.checked) {
+                    isValid = false;
+                }
+            });
+
+            submitButton.disabled = !isValid;
+        }
+
+        // 모든 입력 필드와 체크박스에 이벤트 리스너 추가
+        inputs.forEach(input => input.addEventListener('input', validateForm));
+        checkboxes.forEach(checkbox => checkbox.addEventListener('change', validateForm));
+
+        form.addEventListener('submit', function(event) {
+            event.preventDefault();
+            
+            // 폼 데이터 수집
+            const formData = new FormData(form);
+            const userData = Object.fromEntries(formData.entries());
+
+            // 사용자 정보 저장
+            saveUserInfo(userData);
+
+            // freeReport.html로 이동
+            window.location.href = 'freeReport.html';
+        });
+    </script>
+</body>
+</html>

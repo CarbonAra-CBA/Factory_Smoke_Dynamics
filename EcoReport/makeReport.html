@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>연도별 사용자 질환 대비 오염물질 배출량 비교</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            max-width: 414px;
+            margin: 0 auto;
+        }
+        h1 {
+            font-size: 1.2em;
+            text-align: center;
+        }
+        .chart-container {
+            margin-bottom: 20px;
+        }
+        .toggle-btn {
+            background-color: #4CAF50;
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 4px 2px;
+            cursor: pointer;
+        }
+        .monthly-data {
+            display: none;
+            margin-top: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .medical-history {
+            margin-bottom: 20px;
+        }
+        .medical-history table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 10px;
+        }
+        .medical-history th, .medical-history td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+            font-size: 0.9em;
+        }
+        .medical-history th {
+            background-color: #f2f2f2;
+        }
+        .progress-container {
+            width: 100%;
+            background-color: #f0f0f0;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .progress-bar {
+            width: 0;
+            height: 20px;
+            background-color: #4CAF50;
+            border-radius: 5px;
+            transition: width 0.5s ease-in-out;
+        }
+        .score-text {
+            text-align: center;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="medical-history">
+        <h2>사용자 질환 내역</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>시간</th>
+                    <th>질환명</th>
+                    <th>처방 카테고리</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>2021-03-15</td>
+                    <td>급성 기관지염</td>
+                    <td>항생제, 기관지 확장제</td>
+                </tr>
+                <tr>
+                    <td>2022-07-22</td>
+                    <td>알레르기성 비염</td>
+                    <td>항히스타민제, 비강 스프레이</td>
+                </tr>
+                <tr style="border: 2px solid red;">
+                    <td>2023-01-10</td>
+                    <td>만성 폐쇄성 폐질환(COPD)</td>
+                    <td>흡입용 스테로이드, 기관지 확장제</td>
+                </tr>
+                <tr>
+                    <td>2023-09-05</td>
+                    <td>폐렴</td>
+                    <td>항생제, 해열제, 진해거담제</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <h1>연도별 사용자 질환 대비 SO2 배출량 비교</h1>
+    
+    <div class="chart-container">
+        <canvas id="pollutionChart"></canvas>
+    </div>
+    
+    <div>
+        <h3>질환 발병 가능성</h3>
+        
+        <p class="score-text">높음</p>
+    </div>
+    
+    <button class="toggle-btn" onclick="toggleMonthlyData()">월별 확산량</button>
+    
+    <div class="monthly-data" id="monthlyData">
+        <table>
+            <thead>
+                <tr>
+                    <th>월</th>
+                    <th>SO2 배출량</th>
+                </tr>
+            </thead>
+            <tbody id="monthlyTableBody">
+                <!-- 월별 데이터가 여기에 동적으로 추가됩니다 -->
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        // 차트 데이터
+        const years = ['2019', '2020', '2021', '2022', '2023'];
+        const pollutionData = [34, 41, 57, 60, 71];
+
+        // 차트 생성
+        const ctx = document.getElementById('pollutionChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: years,
+                datasets: [{
+                    label: 'SO2 배출량',
+                    data: pollutionData,
+                    borderColor: 'rgb(75, 192, 192)',
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    tension: 0.1,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'SO2 배출량'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: '연도'
+                        }
+                    }
+                },
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return `배출량: ${context.parsed.y}`;
+                            }
+                        }
+                    },
+                    legend: {
+                        display: false // 범례 숨기기
+                    }
+                }
+            }
+        });
+
+        // 점수 계산 함수 (수정됨)
+        function calculateScore(pollution) {
+            let score = 0;
+            const increasingTrend = pollution.every((val, i, arr) => i === 0 || val >= arr[i-1]);
+            if (increasingTrend) {
+                score = 80;
+            } else {
+                score = 40;
+            }
+            return score;
+        }
+
+        // 점수 계산 및 표시
+        const score = calculateScore(pollutionData);
+        document.getElementById('score').textContent = score;
+        
+        // 프로그레스 바 업데이트
+        function updateProgressBar(score) {
+            const progressBar = document.getElementById('progressBar');
+            progressBar.style.width = `${score}%`;
+            
+            // 점수에 따라 색상 변경
+            if (score < 40) {
+                progressBar.style.backgroundColor = '#4CAF50'; // 녹색
+            } else if (score < 70) {
+                progressBar.style.backgroundColor = '#FFA500'; // 주황색
+            } else {
+                progressBar.style.backgroundColor = '#FF0000'; // 빨간색
+            }
+        }
+
+        // 프로그레스 바 업데이트 호출
+        updateProgressBar(score);
+
+        // 월별 데이터 토글 함수
+        function toggleMonthlyData() {
+            const monthlyData = document.getElementById('monthlyData');
+            if (monthlyData.style.display === 'none' || monthlyData.style.display === '') {
+                monthlyData.style.display = 'block';
+                generateMonthlyData();
+            } else {
+                monthlyData.style.display = 'none';
+            }
+        }
+
+        // 월별 데이터 생성 함수
+        function generateMonthlyData() {
+            const tableBody = document.getElementById('monthlyTableBody');
+            tableBody.innerHTML = '';
+            for (let i = 1; i <= 12; i++) {
+                const row = tableBody.insertRow();
+                row.insertCell(0).textContent = `${i}월`;
+                row.insertCell(1).textContent = Math.floor(Math.random() * 100);
+            }
+        }
+    </script>
+</body>
+</html>

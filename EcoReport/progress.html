@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>보고서 작성 중</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+        .container {
+            text-align: center;
+        }
+        .progress-ring {
+            width: 200px;
+            height: 200px;
+        }
+        .progress-ring__circle {
+            transition: 0.35s stroke-dashoffset;
+            transform: rotate(-90deg);
+            transform-origin: 50% 50%;
+        }
+        .status {
+            margin-top: 20px;
+            font-size: 18px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <svg class="progress-ring" width="200" height="200">
+            <circle class="progress-ring__circle" stroke="#007bff" stroke-width="8" fill="transparent" r="90" cx="100" cy="100"/>
+        </svg>
+        <div class="status" id="status">서버에서 데이터 검색 중...</div>
+    </div>
+    <script>
+        const circle = document.querySelector('.progress-ring__circle');
+        const status = document.getElementById('status');
+        const radius = circle.r.baseVal.value;
+        const circumference = radius * 2 * Math.PI;
+
+        circle.style.strokeDasharray = `${circumference} ${circumference}`;
+        circle.style.strokeDashoffset = circumference;
+
+        function setProgress(percent) {
+            const offset = circumference - percent / 100 * circumference;
+            circle.style.strokeDashoffset = offset;
+        }
+
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        async function runProgress() {
+            // 1단계: 서버에서 데이터 검색
+            for (let i = 0; i <= 30; i += 10) {
+                setProgress(i);
+                await sleep(300);
+            }
+
+            // 2단계: 사용자 건강 정보 데이터 검색
+            status.textContent = "사용자 건강 정보 데이터 검색 중...";
+            await sleep(200);
+            setProgress(45);
+
+            // 3단계: 인과관계 분석
+            status.textContent = "건강정보와 대기오염물질 데이터 인과관계 분석 중...";
+            for (let i = 45; i <= 70; i++) {
+                setProgress(i);
+                await sleep(500 / 25);
+            }
+            await sleep(200);
+            for (let i = 70; i <= 99; i++) {
+                setProgress(i);
+                await sleep(500 / 29);
+            }
+            await sleep(200);
+            setProgress(100);
+            status.textContent = "분석 완료!";
+            await sleep(500);
+
+            // makeReport.html로 이동
+            window.location.href = 'makeReport.html';
+        }
+
+        runProgress();
+    </script>
+</body>
+</html>
